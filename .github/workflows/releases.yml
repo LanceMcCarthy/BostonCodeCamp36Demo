@@ -8,7 +8,7 @@ on:
       - 'releases/*'
     # Only trigger this workflow when source code changes are detected.
     paths:
-      - 'src/MAUI/**/*'
+      - 'src/MauiDemo/**/*'
   # We want to verify these secrets are available before the build starts.
   workflow_call:
     secrets:
