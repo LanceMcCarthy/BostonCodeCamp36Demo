@@ -2,23 +2,22 @@
 
 This repo is a demo for Boston Code Camp. It contains a .NET MAUI project that targets Android, Windows, iOS and MacCatalyst, however the demo is not for .NEt MAUI project, but instead how to build them using GitHub Actions.
 
+![image](https://github.com/LanceMcCarthy/BostonCodeCamp36Demo/assets/3520532/08e9c41f-0f6b-49f4-bf5a-0d5ac1c42bab)
+
 The key takeaway in this demonstration is that are there are two approaches usually need by dev teams:
 
 1. What do we do for normal builds? I just want to verify the code builds after day-to-day work.
 2. What do we do for release builds? I want to build in release mode and package the app
 
-My presentation today will show you both approaches.
+My Boston Code Camp presentation, and this demo, will show you both approaches.
 
 ## Workflows
 
 To do normal builds for #1, we have the [main.yml](./.github/main.yml) workflow. It listens for pushes to `main` branch (and issue or feature branches) desired in #1, we can use a single workflow that runs all quick builds in parallel. The following screenshot shows the result of these quick builds:
 
-![main build](https://github.com/LanceMcCarthy/BostonCodeCamp36Demo/assets/3520532/d2521dee-3853-48f9-8a1a-7bdc48ecf2a7)
+However, for #2, we need a little more complexity. The [releases.yml](./.github/releases.yml) workflow is triggered by the `releases/*` branch name pattern. It expects some secrets to be available and will parallel build the code in release mode, with packaging/code signing enabled, and finally upload the artifact to the action's result.
 
-However, for #2, we need a little more complixity because release builds usually need code signing secrets. The [releases.yml](./.github/releases.yml) workflow is triggered when a commit is pushed to a branch named `releases/*` (also works if a new brnach is created that matches that name pattern). That top-level workflow will then trigger four separate actions (in the .releases/ subfolder), that will run in parallel build the code in release mode, packaging/code signing, and upload the artifact to the action's result.
-
-> [!NOTE]
-> You can also publish these artifacts to dev portals in the workflow (Test Flight, Google Play Console, Microsoft Partner Center, etc). However, this topic is outside the scope of today's presentation, as it is a different conversation about endpoint authentication with developer credentials.
+> As a final stage in #2, you can also publish these artifacts to dev portals in the workflow (Test Flight, Google Play Console, Microsoft Partner Center, etc). However, this topic is outside the scope of today's presentation.
 
 
 ## Automatic Switching in csproj
