@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - releases
+      - 'releases/*'
 
 jobs:
   # >>>>>>> Android build <<<<<<< #
