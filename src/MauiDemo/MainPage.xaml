@@ -19,5 +19,7 @@
             <Button Text="Add Range (5)" Command="{Binding AddRangeCommand}" />
             <Button Text="Clear" Command="{Binding ClearItemsCommand}" />
         </HorizontalStackLayout>
+        
+        <!-- This is an inconsequential change to trigger GH Actions -->
     </Grid>
 </ContentPage>
