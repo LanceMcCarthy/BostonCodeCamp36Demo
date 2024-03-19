@@ -1,0 +1,164 @@
+name: Build All - Debug
+
+on:
+  # Allows us to manually trigger the worflow from the GitHub UI.
+  workflow_dispatch:
+  # A push trigger
+  push:
+    # Trigger the workflow when the main, or feature branch has a commit.
+    branches:
+      - main
+      - 'features/*'
+    # Only trigger the workflow if there was a change inside the project folder or to the workflow file.
+    paths:
+      - 'src/MAUI/**/*'
+      - '.github/workflows/main.yml'
+
+# The values that will be reused in every job should be placed as workflow-wide environment variables. This goes a long way towards: 
+#  - Preventing mistakes
+#  - Easier to edit/update
+#  - Is more readable
+env:
+  PROJECT_PATH: "src/MauiDemo/MauiDemo.csproj"
+  BUILD_CONFIGURATION: Debug
+
+# Now for the fun part, GitHub Actions support multiple jobs, so we can run four separate, parallel, jobs!
+# Each separately build the four target platforms of .NET MAUI; Android, Windows, iOS, and MacCatalyst.
+jobs:
+
+# ***************************** #
+# >>>>>>> Android build <<<<<<< #
+# ***************************** #
+  maui-android:
+    runs-on: windows-2022
+    env:
+      TFM: net8.0-android
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET Core SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - uses: actions/setup-java@v4
+      with:
+        distribution: 'microsoft'
+        java-version: '11'
+
+    - name: Install MAUI workloads
+      shell: pwsh
+      run: dotnet workload install maui --source https://api.nuget.org/v3/index.json
+
+    - name: Restore NuGet packages
+      shell: pwsh
+      run: dotnet restore ${{ env.PROJECT_PATH }}
+
+    - name: Build Maui Android project
+      shell: pwsh
+      run: dotnet build ${{ env.PROJECT_PATH }} -c ${{ env.BUILD_CONFIGURATION }} -f ${{ env.TFM }} --no-restore -p:PublishTrimmed=False
+
+
+# ***************************** #
+# >>>>>>> Windows Build <<<<<<< #
+# ***************************** #
+  maui-windows:
+    runs-on: windows-2022
+    env:
+      TFM: net8.0-windows10.0.19041.0
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET Core SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    # Only needed for WinUI builds due to MSIX capabilities.
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.3.2
+
+    - name: Install MAUI workloads
+      shell: pwsh
+      run: dotnet workload install maui --source https://api.nuget.org/v3/index.json
+
+    - name: Restore NuGet packages
+      shell: pwsh
+      run: dotnet restore ${{ env.PROJECT_PATH }}
+
+    - name: Build Maui WinUI project
+      shell: pwsh
+      run: dotnet build ${{ env.PROJECT_PATH }} -c ${{ env.BUILD_CONFIGURATION }} -f ${{ env.TFM }} -p:PublishTrimmed=False
+
+
+# ************************* #
+# >>>>>>> iOS Build <<<<<<< #
+# ************************* #
+  maui-ios:
+    runs-on: macos-12
+    env:
+      TFM: net8.0-ios
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    # If you have a problem with xcode not being available on the runner, here is a trick
+    #- uses: maxim-lobanov/setup-xcode@v1
+    #  with:
+    #    xcode-version: latest
+
+    - name: Setup .NET Core SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Install MAUI workloads
+      shell: pwsh
+      run: dotnet workload install maui --source https://api.nuget.org/v3/index.json
+
+    - name: Restore NuGet packages
+      shell: bash
+      run: dotnet restore ${{ env.PROJECT_PATH }}
+
+    - name: Build MAUI iOS project
+      shell: bash
+      run: dotnet build ${{ env.PROJECT_PATH }} -c ${{ env.BUILD_CONFIGURATION }} -f ${{ env.TFM }} --no-restore -p:PublishTrimmed=True -p:MtouchLink=SdkOnly
+
+
+# ********************************* #
+# >>>>>>> MacCatalyst Build <<<<<<< #
+# ********************************* #
+  maui-macos:
+    runs-on: macos-12
+    env:
+      TFM: net8.0-maccatalyst
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET Core SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Install MAUI workloads
+      shell: pwsh
+      run: dotnet workload install maui --source https://api.nuget.org/v3/index.json
+
+    - name: Restore NuGet packages
+      shell: bash
+      run: dotnet restore ${{ env.PROJECT_PATH }}
+    
+    - name: Build MAUI MacCatalyst project
+      shell: bash
+      run: dotnet build ${{ env.PROJECT_PATH }} -c ${{ env.BUILD_CONFIGURATION }} -f ${{ env.TFM }} --no-restore -p:PublishTrimmed=True -p:MtouchLink=SdkOnly
