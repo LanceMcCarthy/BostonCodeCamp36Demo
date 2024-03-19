@@ -1,34 +1,267 @@
 name: Release Builds
 on:
+  # Allow a manual trigger, just in case.
   workflow_dispatch:
   push:
+    # Using a wildcard allows you to trigger the build on any release brach (e.g., releases/v1.0, releases/v2.0, etc.).
     branches:
       - 'releases/*'
+    # Only trigger this workflow when source code changes are detected.
+    paths:
+      - 'src/MAUI/**/*'
+  # We want to verify these secrets are available before the build starts.
+  workflow_call:
+    secrets:
+      ANDROID_SIGNING_KEYSTORE_BASE64:
+        required: true
+      ANDROID_SIGNING_KEYSTORE_FILENAME:
+        required: true
+      ANDROID_SIGNING_STORE_PASS:
+        required: true
+      ANDROID_SIGNING_KEY_ALIAS:
+        required: true
+      ANDROID_SIGNING_KEY_PASS:
+        required: true
+      CODESIGN_CERTIFICATE_BASE64:
+        required: true
+      CODESIGN_CERTIFICATE_FILENAME:
+        required: true
+      CODESIGN_CERTIFICATE_THUMBPRINT:  
+        required: true
+      CODESIGN_CERTIFICATE_PASSWORD:
+        required: true
+
+env:
+  PROJECT_PATH: "src/MauiDemo/MauiDemo.csproj"
+  BUILD_CONFIGURATION: Release
 
 jobs:
-  # >>>>>>> Android build <<<<<<< #
-  maui-android:
+
+# ******************************* #
+# >>>>>>> Android Release <<<<<<< #
+# ******************************* #
+  android-release:
     runs-on: windows-2022
+    env:
+      TFM: net8.0-android
+      ARTIFACTS_PATH: "artifacts_android"
     steps:
-      - uses: ./releases/android-release.yml
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-  # >>>>>>> Windows Build <<<<<<< #
-  maui-windows:
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - uses: actions/setup-java@v4
+      with:
+        distribution: 'microsoft'
+        java-version: '11'
+    
+    - name: Decode the Keystore into File
+      run: |
+        $file_bytes = [System.Convert]::FromBase64String("${{ secrets.ANDROID_SIGNING_KEYSTORE_BASE64 }}")
+        [IO.File]::WriteAllBytes("${{ secrets.ANDROID_SIGNING_KEYSTORE_FILENAME }}", $file_bytes)
+    
+    - name: Install MAUI workloads
+      shell: pwsh
+      run: dotnet workload install maui --source https://api.nuget.org/v3/index.json
+
+    - name: Restore NuGet packages
+      shell: pwsh
+      run: dotnet restore ${{ env.PROJECT_PATH }}
+
+    - name: Build MAUI Android project
+      shell: pwsh
+      run: |
+        dotnet publish ${{ env.PROJECT_PATH }} -c ${{ env.BUILD_CONFIGURATION }} -f ${{ env.TFM }} --no-restore /p:AndroidKeyStore=true /p:AndroidSigningKeyStore=${{ secrets.ANDROID_SIGNING_KEYSTORE_FILENAME }} /p:AndroidSigningStorePass=${{ secrets.ANDROID_SIGNING_STORE_PASS }} /p:AndroidSigningKeyAlias=${{ secrets.ANDROID_SIGNING_KEY_ALIAS }} /p:AndroidSigningKeyPass=${{ secrets.ANDROID_SIGNING_KEY_PASS }}
+
+    - name: Copy signed APKs & AABs to artifacts folder
+      shell: pwsh 
+      run: |
+        cd ${{ github.workspace }}
+        mkdir -p ${{ env.ARTIFACTS_PATH }}
+        Get-Childitem -Path ${{ github.workspace }} -Include *Signed.a* -File -Recurse | Copy-Item -Destination ${{ env.ARTIFACTS_PATH }}
+
+    - name: Publish Android build artifacts
+      uses: actions/upload-artifact@v3
+      with:     
+        name: "Android Artifacts" 
+        path: "${{ env.ARTIFACTS_PATH }}/*"
+        if-no-files-found: warn
+        retention-days: 10
+
+
+# ***************************** #
+# >>>>>>> WinUI Release <<<<<<< #
+# ***************************** #
+
+  windows-release:
     runs-on: windows-2022
+    env:
+      TFM: net8.0-windows10.0.19041.0
+      ARTIFACTS_PATH: "artifacts_windows"
     steps:
-      - uses: ./releases/windows-release.yml
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-  # iOS and MacOS builds are ideally built on your own self-hosted runner, because a valid keychain can already be installed.
-  # It is possible to install your provisioningprofile and certificate on a Microsoft-hosted runner, but outside the scope of this demo
-  # >>>>>>> iOS Build <<<<<<< #
-  maui-ios:
-    runs-on: macos-12
-    steps:
-      - uses: ./releases/ios-release.yml
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
 
-  # >>>>>>> MacCatalyst Build <<<<<<< #
-  maui-macos:
+    # For WinUI builds
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.3.2
+
+    - name: Decode the Pfx
+      run: |
+        $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.CODESIGN_CERTIFICATE_BASE64 }}")
+        $currentDirectory = Get-Location
+        $certificatePath = Join-Path -Path $currentDirectory -ChildPath "src\MediaFileManager\PackageProject" -AdditionalChildPath "${{ secrets.CODESIGN_CERTIFICATE_FILENAME }}"
+        [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
+
+    - name: Install MAUI workloads
+      shell: pwsh
+      run: dotnet workload install maui --source https://api.nuget.org/v3/index.json
+
+    - name: Restore NuGet packages
+      shell: pwsh
+      run: dotnet restore ${{ env.PROJECT_PATH }}
+
+    - name: Build Maui WinUI project
+      shell: pwsh
+      run: msbuild ${{ env.PROJECT_PATH }} -c ${{ env.BUILD_CONFIGURATION }} -f ${{ env.TFM }} -p:PublishTrimmed=False /p:GenerateAppxPackageOnBuild=true /p:PackageCertificateKeyFile=${{ secrets.CODESIGN_CERTIFICATE_FILENAME }} /p:PackageCertificatePassword=${{ secrets.CODESIGN_CERTIFICATE_PASSWORD }} /p:PackageCertificateThumbprint=${{ secrets.CODESIGN_CERTIFICATE_THUMBPRINT }}
+
+    - name: Copy MSIX to artifacts folder
+      shell: pwsh
+      run: |
+        cd ${{ github.workspace }}
+        mkdir -p ${{ env.ARTIFACTS_PATH }}
+        Get-Childitem -Path ${{ github.workspace }} -Include *.msix -File -Recurse | Copy-Item -Destination ${{ env.ARTIFACTS_PATH }}
+
+    - name: Publish build artifacts
+      uses: actions/upload-artifact@v3
+      with:     
+        name: "WINUI Artifacts" 
+        path: "${{ env.ARTIFACTS_PATH }}/*"
+        if-no-files-found: warn
+        retention-days: 10
+
+
+
+
+# *************************** #
+# >>>>>>> iOS Release <<<<<<< #
+# *************************** #
+
+# Code Signing Note
+# iOS and MacOS builds are ideally built on a self-hosted GitHub Actions runner, because a valid keychain can already be installed.
+# It is possible to install your provisioningprofile and certificate on a hosted runner, but is outside the scope of this demo
+
+  ios-release:
     runs-on: macos-12
+    env:
+      TFM: net8.0-ios
+      ARTIFACTS_PATH: "artifacts_ios"
     steps:
-      - uses: ./releases/maccatalyst-release.yml
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Install MAUI workloads
+      shell: pwsh
+      run: dotnet workload install maui --source https://api.nuget.org/v3/index.json
+
+    - name: Restore NuGet packages
+      shell: bash
+      run: dotnet restore ${{ env.PROJECT_PATH }} --configfile ${{ env.NUGETCONFIG_PATH }}
+
+    - name: Build MAUI iOS project
+      shell: bash
+      run: dotnet build ${{ env.PROJECT_PATH }} -c ${{ env.BUILD_CONFIGURATION }} -f ${{ env.TFM }} --no-restore -p:PublishTrimmed=True -p:MtouchLink=SdkOnly
+
+    - name: Copy iOS packages to artifacts folder
+      shell: pwsh
+      run: |
+        cd ${{ github.workspace }}
+        mkdir -p ${{ env.ARTIFACTS_PATH }}
+        Get-Childitem -Path ${{ github.workspace }} -Include *.app -File -Recurse | Copy-Item -Destination ${{ env.ARTIFACTS_PATH }}
+
+    - name: Publish iOS build artifacts
+      uses: actions/upload-artifact@v3
+      with:     
+        name: "iOS artifacts" 
+        path: "${{ env.ARTIFACTS_PATH }}/*"
+        if-no-files-found: warn
+        retention-days: 10
+
+
+# *********************************** #
+# >>>>>>> MacCatalyst Release <<<<<<< #
+# *********************************** #
+
+  macos-release:
+    runs-on: macos-12
+    env:
+      TFM: net8.0-maccatalyst
+      ARTIFACTS_PATH: "artifacts_macos"
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET Core SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Generate version number using date and run number
+      id: version-creator
+      shell: bash
+      run: |
+        buildDay=`date +%Y.%m%d`
+        echo $buildDay
+        ver="${buildDay}.${GITHUB_RUN_NUMBER}.0"
+        echo $ver
+        echo "APP_VERSION=$ver" >> $GITHUB_ENV
+
+    - name: Install MAUI workloads
+      shell: pwsh
+      run: dotnet workload install maui --source https://api.nuget.org/v3/index.json
+
+    - name: Restore NuGet packages
+      shell: bash
+      run: dotnet restore ${{ env.PROJECT_PATH }}
+    
+    - name: Build MAUI MacCatalyst project
+      shell: bash
+      run: dotnet build ${{ env.PROJECT_PATH }} -c ${{ env.BUILD_CONFIGURATION }} -f ${{ env.TFM }} --no-restore -p:PublishTrimmed=True -p:MtouchLink=SdkOnly
+
+    - name: Copy MacOS packages into artifacts folder
+      shell: pwsh
+      run: |
+        cd ${{ github.workspace }}
+        mkdir -p ${{ env.ARTIFACTS_PATH }}
+        Get-Childitem -Path ${{ github.workspace }} -Include *.pkg -File -Recurse | Copy-Item -Destination ${{ env.ARTIFACTS_PATH }}
+
+    - name: Publish macOS build artifacts
+      uses: actions/upload-artifact@v3
+      with:     
+        name: "macOS artifacts" 
+        path: "${{ env.ARTIFACTS_PATH }}/*"
+        if-no-files-found: warn
+        retention-days: 10
     
