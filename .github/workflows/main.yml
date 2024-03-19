@@ -11,7 +11,7 @@ on:
       - 'features/*'
     # Only trigger the workflow if there was a change inside the project folder or to the workflow file.
     paths:
-      - 'src/MAUI/**/*'
+      - 'src/MauiDemo/**/*'
       - '.github/workflows/main.yml'
 
 # The values that will be reused in every job should be placed as workflow-wide environment variables. This goes a long way towards: 
