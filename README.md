@@ -1,20 +1,19 @@
-# BostonCodeCamp36Demo
-A project containing a .NET MAUI application and workflows that automatically build all the platform the projects for you.
+# Boston Code Camp 36 Demo
 
-The project itself is not relevant, so we use a simple app that is just to prove it is expected to run:
+This repo is a demo for Boston Code Camp. It contains a .NET MAUI project that targets Android, Windows, iOS and MacCatalyst, however the demo is not for .NEt MAUI project, but instead how to build them using GitHub Actions.
 
-![app and code](https://github.com/LanceMcCarthy/BostonCodeCamp36Demo/assets/3520532/f7ba35ec-db24-4172-8290-8611da3e165d)
+The key takeaway in this demonstration is that are there are two approaches usually need by dev teams:
 
-## Workflows
-
-What is important are the steps inside the GitHub Actions workflow files. The key takaway in this demonstration are there are two approaches usually required by dev teams:
-
-1. What do we do for normal builds? I just want to verify the  just verifying the code builds after day-to-day work?
-2. What do we do for release builds, when we want a package to install/publish?
+1. What do we do for normal builds? I just want to verify the code builds after day-to-day work.
+2. What do we do for release builds? I want to build in release mode and package the app
 
 My presentation today will show you both approaches.
 
-To do normal builds for #1, we have the [main.yml](./.github/main.yml) workflow. It listens for pushes to `main` branch (and issue or feature branches) desired in #1, we can use a single workflow that runs all quick builds in parallel. This is demonstrated in 
+## Workflows
+
+To do normal builds for #1, we have the [main.yml](./.github/main.yml) workflow. It listens for pushes to `main` branch (and issue or feature branches) desired in #1, we can use a single workflow that runs all quick builds in parallel. The following screenshot shows the result of these quick builds:
+
+![main build](https://github.com/LanceMcCarthy/BostonCodeCamp36Demo/assets/3520532/d2521dee-3853-48f9-8a1a-7bdc48ecf2a7)
 
 However, for #2, we need a little more complixity because release builds usually need code signing secrets. The [releases.yml](./.github/releases.yml) workflow is triggered when a commit is pushed to a branch named `releases/*` (also works if a new brnach is created that matches that name pattern). That top-level workflow will then trigger four separate actions (in the .releases/ subfolder), that will run in parallel build the code in release mode, packaging/code signing, and upload the artifact to the action's result.
 
@@ -103,3 +102,9 @@ For MacCatalyst, it is a bit easier, we only need two situations to cover.
     <CodesignProvision>MyApp_MacStore_2022.provisionprofile</CodesignProvision>
   </PropertyGroup>
 ```
+
+## The .NET MAUI App
+
+The project itself is just a simple app that proves it works at runtime, using some sample data and MVVM data binding.
+
+![app and code](https://github.com/LanceMcCarthy/BostonCodeCamp36Demo/assets/3520532/f7ba35ec-db24-4172-8290-8611da3e165d)
