@@ -1,8 +1,11 @@
 # Boston Code Camp 36 Demo
 
-This repo is a demo for Boston Code Camp. It contains a .NET MAUI project that targets Android, Windows, iOS and MacCatalyst, however the demo is not for .NEt MAUI project, but instead how to build them using GitHub Actions.
+This is a demo for Boston Code Camp that contains workflows that shouls you how to build .NET MAUI Android, Windows, iOS and MacCatalyst projects in gitHub Actions.
 
-![image](https://github.com/LanceMcCarthy/BostonCodeCamp36Demo/assets/3520532/08e9c41f-0f6b-49f4-bf5a-0d5ac1c42bab)
+| BRANCH | STATUS |
+|--------|--------|
+| main | [![main](https://github.com/LanceMcCarthy/BostonCodeCamp36Demo/actions/workflows/main.yml/badge.svg)](https://github.com/LanceMcCarthy/BostonCodeCamp36Demo/actions/workflows/main.yml) |
+| releases | [![releases](https://github.com/LanceMcCarthy/BostonCodeCamp36Demo/actions/workflows/releases.yml/badge.svg)](https://github.com/LanceMcCarthy/BostonCodeCamp36Demo/actions/workflows/releases.yml) |
 
 The key takeaway in this demonstration is that are there are two approaches usually need by dev teams:
 
@@ -19,6 +22,7 @@ However, for #2, we need a little more complexity. The [releases.yml](./.github/
 
 > As a final stage in #2, you can also publish these artifacts to dev portals in the workflow (Test Flight, Google Play Console, Microsoft Partner Center, etc). However, this topic is outside the scope of today's presentation.
 
+![image](https://github.com/LanceMcCarthy/BostonCodeCamp36Demo/assets/3520532/08e9c41f-0f6b-49f4-bf5a-0d5ac1c42bab)
 
 ## Automatic Switching in csproj
 
