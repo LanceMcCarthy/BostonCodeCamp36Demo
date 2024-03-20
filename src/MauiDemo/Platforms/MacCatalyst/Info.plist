@@ -4,13 +4,20 @@
 <dict>
 	<key>UIDeviceFamily</key>
 	<array>
-		<integer>1</integer>
-		<integer>2</integer>
+		<integer>6</integer>
 	</array>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>arm64</string>
 	</array>
+  <key>CFBundleDevelopmentRegion</key>
+  <string>en</string>
+  <key>NSHumanReadableCopyright</key>
+  <string>Lancelot Software © 2024</string>
+  <key>LSApplicationCategoryType</key>
+  <string>public.app-category.utilities</string>
+  <key>ITSAppUsesNonExemptEncryption</key>
+  <false/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
