@@ -53,13 +53,7 @@ jobs:
 
     # Docs https://learn.microsoft.com/en-us/dotnet/maui/android/deployment/publish-cli?view=net-maui-8.0
     - name: Build MAUI Android project
-      run: >
-        dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} --no-restore
-          -p:AndroidKeyStore=true
-          -p:AndroidSigningKeyStore="${{github.workspace}}/${{secrets.ANDROID_SIGNING_KEYSTORE_FILENAME}}"
-          -p:AndroidSigningStorePass="${{secrets.ANDROID_SIGNING_STORE_PASS}}"
-          -p:AndroidSigningKeyAlias="${{secrets.ANDROID_SIGNING_KEY_ALIAS}}"
-          -p:AndroidSigningKeyPass="${{secrets.ANDROID_SIGNING_KEY_PASS}}"
+      run: dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} --no-restore -p:AndroidKeyStore=true -p:AndroidSigningKeyStore="${{github.workspace}}/${{secrets.ANDROID_SIGNING_KEYSTORE_FILENAME}}" -p:AndroidSigningStorePass="${{secrets.ANDROID_SIGNING_STORE_PASS}}" -p:AndroidSigningKeyAlias="${{secrets.ANDROID_SIGNING_KEY_ALIAS}}" -p:AndroidSigningKeyPass="${{secrets.ANDROID_SIGNING_KEY_PASS}}"
 
     - name: Upload Android artifacts (APKs & AABs)
       uses: actions/upload-artifact@v3
@@ -103,17 +97,8 @@ jobs:
       run: dotnet workload install maui --source "https://api.nuget.org/v3/index.json"
 
     # Docs https://learn.microsoft.com/en-us/dotnet/maui/windows/deployment/publish-cli?view=net-maui-8.0
-    # Pro-tip! notice the use of the folded block scalar "run: >" instead of the Literal Block Scaalr "run: |", it collapses the multiline into a single line. See https://yaml-multiline.info/
     - name: Build Maui WinUI project
-      run: >
-        dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}}
-          -p:RuntimeIdentifierOverride=win10-x64
-          -p:PublishTrimmed=False
-          -p:GenerateAppxPackageOnBuild=true
-          -p:AppxPackageSigningEnabled=true
-          -p:PackageCertificateKeyFile="${{secrets.CODESIGN_CERTIFICATE_FILENAME}}"
-          -p:PackageCertificatePassword="${{secrets.CODESIGN_CERTIFICATE_PASSWORD}}"
-          -p:PackageCertificateThumbprint="${{secrets.CODESIGN_CERTIFICATE_THUMBPRINT}}"
+      run: dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:RuntimeIdentifierOverride=win10-x64 -p:PublishTrimmed=False -p:GenerateAppxPackageOnBuild=true -p:AppxPackageSigningEnabled=true -p:PackageCertificateKeyFile="${{secrets.CODESIGN_CERTIFICATE_FILENAME}}" -p:PackageCertificatePassword="${{secrets.CODESIGN_CERTIFICATE_PASSWORD}}" -p:PackageCertificateThumbprint="${{secrets.CODESIGN_CERTIFICATE_THUMBPRINT}}"
 
     # automaticl publishing to the Microsoft Store can be found here
     - name: Upload WinUI artifacts
@@ -130,7 +115,7 @@ jobs:
 # ********************************************************************** #
 
   ios-release:
-    runs-on: macos-12
+    runs-on: macos-14
     env:
       TFM: net8.0-ios
       CODESIGN_KEY: "Apple Distribution: Lancelot Software, LLC (L65255N3F7)"
@@ -168,14 +153,7 @@ jobs:
 
     # BUILD Now we can build the iOS project. Docs https://learn.microsoft.com/en-us/dotnet/maui/ios/deployment/publish-cli?view=net-maui-8.0
     - name: Build MAUI iOS project
-      run: >
-        dotnet build ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}}
-          -p:RuntimeIdentifier=ios-arm64
-          -p:PublishTrimmed=true
-          -p:MtouchLink=SdkOnly
-          -p:ArchiveOnBuild=true
-          -p:CodesignKey="${{env.CODESIGN_KEY}}"
-          -p:CodesignProvision="${{env.CODESIGN_PROVISION}}"
+      run: dotnet build ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:RuntimeIdentifier=ios-arm64 -p:PublishTrimmed=true -p:MtouchLink=SdkOnly -p:ArchiveOnBuild=true -p:CodesignKey="${{env.CODESIGN_KEY}}" -p:CodesignProvision="${{env.CODESIGN_PROVISION}}"
 
     # PUBLISH You can use Apple's GitHub Actions to upload to TestFlight. Docs https://github.com/Apple-Actions/upload-testflight-build
     - name: 'Upload app to TestFlight'
@@ -201,7 +179,7 @@ jobs:
 # ********************************************************************** #
 
   maccatalyst-release:
-    runs-on: macos-12
+    runs-on: macos-14
     env:
       TFM: net8.0-maccatalyst
       CODESIGN_KEY: "Apple Distribution: Lancelot Software, LLC (L65255N3F7)"
@@ -239,16 +217,7 @@ jobs:
 
     # Docs https://learn.microsoft.com/en-us/dotnet/maui/mac-catalyst/deployment/publish-app-store?view=net-maui-8.0 (carefully follow the intructions about entitlements.plist and info.plist)
     - name: Build MAUI MacCatalyst project
-      run: >
-        dotnet build ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}}
-          -p:PublishTrimmed=true
-          -p:MtouchLink=SdkOnly
-          -p:CreatePackage=true
-          -p:EnableCodeSigning=true
-          -p:EnablePackageSigning=true
-          -p:CodesignKey="${{env.CODESIGN_KEY}}"
-          -p:CodesignProvision="${{env.CODESIGN_PROVISION}}"
-          -p:CodesignEntitlements="Platforms\MacCatalyst\Entitlements.plist"
+      run: dotnet build ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:PublishTrimmed=true -p:MtouchLink=SdkOnly -p:CreatePackage=true -p:EnableCodeSigning=true -p:EnablePackageSigning=true -p:CodesignKey="${{env.CODESIGN_KEY}}" -p:CodesignProvision="${{env.CODESIGN_PROVISION}}" -p:CodesignEntitlements="Platforms\MacCatalyst\Entitlements.plist"
 
     - name: Upload maccatalyst artifacts
       uses: actions/upload-artifact@v3
