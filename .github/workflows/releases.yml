@@ -10,46 +10,15 @@ on:
     paths:
       - 'src/MauiDemo/**/*'
       - '.github/workflows/releases.yml'
-  # We want to verify these secrets are available before the build starts.
-  workflow_call:
-    secrets:
-      ANDROID_SIGNING_KEYSTORE_BASE64:
-        required: true
-      ANDROID_SIGNING_KEYSTORE_FILENAME:
-        required: true
-      ANDROID_SIGNING_STORE_PASS:
-        required: true
-      ANDROID_SIGNING_KEY_ALIAS:
-        required: true
-      ANDROID_SIGNING_KEY_PASS:
-        required: true
-      CODESIGN_CERTIFICATE_BASE64:
-        required: true
-      CODESIGN_CERTIFICATE_FILENAME:
-        required: true
-      CODESIGN_CERTIFICATE_THUMBPRINT:  
-        required: true
-      CODESIGN_CERTIFICATE_PASSWORD:
-        required: true
-      APPLE_DISTRIBUTION_CERT_BASE64:
-        required: true
-      APPLE_DISTRIBUTION_CERT_PASSWORD:
-          required: true
-      APPLE_IOS_STORE_PROFILE:
-        required: true
-      APPLE_MAC_STORE_PROFILE:
-          required: true
 
 env:
   PROJECT_PATH: "src/MauiDemo/MauiDemo.csproj"
   BUILD_CONFIGURATION: Release
 
 jobs:
-
 # ********************************************************************** #
 #                            Android
 # ********************************************************************** #
-
   android-release:
     runs-on: windows-2022
     env:
@@ -85,10 +54,7 @@ jobs:
     # Docs https://learn.microsoft.com/en-us/dotnet/maui/android/deployment/publish-cli?view=net-maui-8.0
     - name: Build MAUI Android project
       run: >
-        dotnet publish ${{env.PROJECT_PATH}} 
-          -c ${{env.BUILD_CONFIGURATION}} 
-          -f ${{env.TFM}}
-          --no-restore
+        dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} --no-restore
           -p:AndroidKeyStore=true
           -p:AndroidSigningKeyStore="${{github.workspace}}/${{secrets.ANDROID_SIGNING_KEYSTORE_FILENAME}}"
           -p:AndroidSigningStorePass="${{secrets.ANDROID_SIGNING_STORE_PASS}}"
@@ -136,17 +102,11 @@ jobs:
     - name: Install MAUI workloads
       run: dotnet workload install maui --source "https://api.nuget.org/v3/index.json"
 
-    - name: Restore NuGet packages
-      run: dotnet restore ${{env.PROJECT_PATH}}
-
     # Docs https://learn.microsoft.com/en-us/dotnet/maui/windows/deployment/publish-cli?view=net-maui-8.0
     # Pro-tip! notice the use of the folded block scalar "run: >" instead of the Literal Block Scaalr "run: |", it collapses the multiline into a single line. See https://yaml-multiline.info/
     - name: Build Maui WinUI project
       run: >
-        dotnet publish ${{env.PROJECT_PATH}} 
-          -c ${{env.BUILD_CONFIGURATION}} 
-          -f ${{env.TFM}}
-          --no-restore
+        dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}}
           -p:RuntimeIdentifierOverride=win10-x64
           -p:PublishTrimmed=False
           -p:GenerateAppxPackageOnBuild=true
@@ -190,9 +150,6 @@ jobs:
     - name: Install MAUI workloads
       run: dotnet workload install maui --source "https://api.nuget.org/v3/index.json"
 
-    - name: Restore NuGet packages
-      run: dotnet restore ${{env.PROJECT_PATH}}
-      
     # PREPARE Let's import the App code signing certificate. Docs https://github.com/Apple-Actions/import-codesign-certs
     - name: Import Code-Signing Certificates
       uses: Apple-Actions/import-codesign-certs@v2
@@ -205,19 +162,14 @@ jobs:
       with:
         profile-type: "${{env.PROVISION_PROFILE_TYPE}}"
         bundle-id: "${{env.CODESIGN_PROVISION}}"
-        issuer-id: "${{secrets.APPSTORE_ISSUER_ID}}"
-        api-key-id: "${{secrets.APPSTORE_KEY_ID}}"
-        api-private-key: "${{env.api_private_key}}"
-      env:
-        api_private_key: "${{secrets.APPSTORE_PRIVATE_KEY}}"
+        issuer-id: "${{secrets.APPSTORE_API_ISSUER_ID}}"
+        api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
+        api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
 
     # BUILD Now we can build the iOS project. Docs https://learn.microsoft.com/en-us/dotnet/maui/ios/deployment/publish-cli?view=net-maui-8.0
     - name: Build MAUI iOS project
       run: >
-        dotnet build ${{env.PROJECT_PATH}}
-          -c ${{env.BUILD_CONFIGURATION}}
-          -f ${{env.TFM}}
-          --no-restore
+        dotnet build ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}}
           -p:RuntimeIdentifier=ios-arm64
           -p:PublishTrimmed=true
           -p:MtouchLink=SdkOnly
@@ -230,11 +182,9 @@ jobs:
       uses: apple-actions/upload-testflight-build@v1
       with: 
         app-path: "${{github.workspace}}/**/*.ipa" 
-        issuer-id: ${{secrets.APPSTORE_ISSUER_ID}}
-        api-key-id: ${{secrets.APPSTORE_API_KEY_ID}}
-        api-private-key: "${{env.api_private_key}}"
-      env:
-        api_private_key: "${{secrets.APPSTORE_PRIVATE_KEY}}"
+        issuer-id: ${{secrets.APPSTORE_API_ISSUER_ID}}
+        api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
+        api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
 
     # PUBLISH Attach the artifact the Action's result
     - name: Upload iOS artifacts
@@ -271,9 +221,6 @@ jobs:
     - name: Install MAUI workloads
       run: dotnet workload install maui --source "https://api.nuget.org/v3/index.json"
 
-    - name: Restore NuGet packages
-      run: dotnet restore ${{env.PROJECT_PATH}}
-      
     # PREPARE Let's import the App code signing certificate. this action form Apple also supports using base64, which is a nice convenience. Docs https://github.com/Apple-Actions/import-codesign-certs
     - name: Import Code-Signing Certificates
       uses: Apple-Actions/import-codesign-certs@v2
@@ -286,19 +233,14 @@ jobs:
       with:
         profile-type: "${{env.PROVISION_PROFILE_TYPE}}"
         bundle-id: "${{env.CODESIGN_PROVISION}}"
-        issuer-id: "${{secrets.APPSTORE_ISSUER_ID}}"
-        api-key-id: "${{secrets.APPSTORE_KEY_ID}}"
-        api-private-key: "${{env.api_private_key}}"
-      env:
-        api_private_key: "${{secrets.APPSTORE_PRIVATE_KEY}}"
+        issuer-id: "${{secrets.APPSTORE_API_ISSUER_ID}}"
+        api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
+        api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
 
     # Docs https://learn.microsoft.com/en-us/dotnet/maui/mac-catalyst/deployment/publish-app-store?view=net-maui-8.0 (carefully follow the intructions about entitlements.plist and info.plist)
     - name: Build MAUI MacCatalyst project
       run: >
-        dotnet build ${{env.PROJECT_PATH}}
-          -c ${{env.BUILD_CONFIGURATION}}
-          -f ${{env.TFM}}
-          --no-restore
+        dotnet build ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}}
           -p:PublishTrimmed=true
           -p:MtouchLink=SdkOnly
           -p:CreatePackage=true
