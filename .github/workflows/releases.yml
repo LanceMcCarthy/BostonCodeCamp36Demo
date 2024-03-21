@@ -20,49 +20,49 @@ jobs:
 #                            Android
 # ********************************************************************** #
 
-  android-release:
-    runs-on: windows-2022
-    env:
-      TFM: net8.0-android
-      ARTIFACTS_PATH: "artifacts_android"
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+  # android-release:
+  #   runs-on: windows-2022
+  #   env:
+  #     TFM: net8.0-android
+  #     ARTIFACTS_PATH: "artifacts_android"
+  #   steps:
+  #   - name: Checkout
+  #     uses: actions/checkout@v4
+  #     with:
+  #       fetch-depth: 0
 
-    - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
+  #   - name: Setup .NET SDK
+  #     uses: actions/setup-dotnet@v4
+  #     with:
+  #       dotnet-version: '8.0.x'
 
-    - uses: actions/setup-java@v4
-      with:
-        distribution: 'microsoft'
-        java-version: '11'
+  #   - uses: actions/setup-java@v4
+  #     with:
+  #       distribution: 'microsoft'
+  #       java-version: '11'
     
-    - name: Decode the Keystore into File
-      run: |
-        $file_bytes = [System.Convert]::FromBase64String("${{secrets.ANDROID_SIGNING_KEYSTORE_BASE64}}")
-        [IO.File]::WriteAllBytes("${{github.workspace}}/${{secrets.ANDROID_SIGNING_KEYSTORE_FILENAME}}", $file_bytes)
+  #   - name: Decode the Keystore into File
+  #     run: |
+  #       $file_bytes = [System.Convert]::FromBase64String("${{secrets.ANDROID_SIGNING_KEYSTORE_BASE64}}")
+  #       [IO.File]::WriteAllBytes("${{github.workspace}}/${{secrets.ANDROID_SIGNING_KEYSTORE_FILENAME}}", $file_bytes)
     
-    - name: Install MAUI workloads
-      run: dotnet workload install maui --source "https://api.nuget.org/v3/index.json"
+  #   - name: Install MAUI workloads
+  #     run: dotnet workload install maui --source "https://api.nuget.org/v3/index.json"
 
-    - name: Restore NuGet packages
-      run: dotnet restore ${{env.PROJECT_PATH}}
+  #   - name: Restore NuGet packages
+  #     run: dotnet restore ${{env.PROJECT_PATH}}
 
-    # Docs https://learn.microsoft.com/en-us/dotnet/maui/android/deployment/publish-cli?view=net-maui-8.0
-    - name: Build MAUI Android project
-      run: dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} --no-restore -p:AndroidKeyStore=true -p:AndroidSigningKeyStore="${{github.workspace}}/${{secrets.ANDROID_SIGNING_KEYSTORE_FILENAME}}" -p:AndroidSigningStorePass="${{secrets.ANDROID_SIGNING_STORE_PASS}}" -p:AndroidSigningKeyAlias="${{secrets.ANDROID_SIGNING_KEY_ALIAS}}" -p:AndroidSigningKeyPass="${{secrets.ANDROID_SIGNING_KEY_PASS}}"
+  #   # Docs https://learn.microsoft.com/en-us/dotnet/maui/android/deployment/publish-cli?view=net-maui-8.0
+  #   - name: Build MAUI Android project
+  #     run: dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} --no-restore -p:AndroidKeyStore=true -p:AndroidSigningKeyStore="${{github.workspace}}/${{secrets.ANDROID_SIGNING_KEYSTORE_FILENAME}}" -p:AndroidSigningStorePass="${{secrets.ANDROID_SIGNING_STORE_PASS}}" -p:AndroidSigningKeyAlias="${{secrets.ANDROID_SIGNING_KEY_ALIAS}}" -p:AndroidSigningKeyPass="${{secrets.ANDROID_SIGNING_KEY_PASS}}"
 
-    - name: Upload Android artifacts (APKs & AABs)
-      uses: actions/upload-artifact@v3
-      with:
-        name: "Android Artifacts" 
-        path: "${{github.workspace}}/**/*Signed.a*"
-        if-no-files-found: warn
-        retention-days: 10
+  #   - name: Upload Android artifacts (APKs & AABs)
+  #     uses: actions/upload-artifact@v3
+  #     with:
+  #       name: "Android Artifacts" 
+  #       path: "${{github.workspace}}/**/*Signed.a*"
+  #       if-no-files-found: warn
+  #       retention-days: 10
 
 
 # ********************************************************************** #
@@ -111,7 +111,8 @@ jobs:
       run: |
         # Normally you would import your own cert here (see https://github.com/marketplace/actions/base64-to-file). For simplicity, we will use a quick self-signed one
         $cert = New-SelfSignedCertificate -Type Custom -Subject "CN=LancelotTemp" -KeyUsage DigitalSignature -FriendlyName "LancelotTemp" -CertStoreLocation "Cert:\CurrentUser\My" -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
-        echo "thumbprint=$cert.Thumbprint" >> "$ENV:GITHUB_OUTPUT"
+        $thumb=$cert.Thumbprint
+        echo "thumbprint=$thumb" >> "$ENV:GITHUB_OUTPUT"
 
     # Docs https://learn.microsoft.com/en-us/dotnet/maui/windows/deployment/publish-cli?view=net-maui-8.0
     - name: Build Maui WinUI project
@@ -138,118 +139,118 @@ jobs:
 #                               iOS
 # ********************************************************************** #
 
-  ios-release:
-    runs-on: macos-14
-    env:
-      TFM: net8.0-ios
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+  # ios-release:
+  #   runs-on: macos-14
+  #   env:
+  #     TFM: net8.0-ios
+  #   steps:
+  #   - name: Checkout
+  #     uses: actions/checkout@v4
+  #     with:
+  #       fetch-depth: 0
     
-    - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
+  #   - name: Setup .NET SDK
+  #     uses: actions/setup-dotnet@v4
+  #     with:
+  #       dotnet-version: '8.0.x'
 
-    - name: Install MAUI workloads
-      run: dotnet workload install maui --source "https://api.nuget.org/v3/index.json"
+  #   - name: Install MAUI workloads
+  #     run: dotnet workload install maui --source "https://api.nuget.org/v3/index.json"
 
-    # PREPARE Let's import the App code signing certificate. Docs https://github.com/Apple-Actions/import-codesign-certs
-    - name: Import Code-Signing Certificates
-      uses: Apple-Actions/import-codesign-certs@v2
-      with:
-        p12-file-base64: "${{secrets.APPLE_DISTRIBUTION_CERT_BASE64}}"
-        p12-password: "${{secrets.APPLE_DISTRIBUTION_CERT_PASSWORD}}"
+  #   # PREPARE Let's import the App code signing certificate. Docs https://github.com/Apple-Actions/import-codesign-certs
+  #   - name: Import Code-Signing Certificates
+  #     uses: Apple-Actions/import-codesign-certs@v2
+  #     with:
+  #       p12-file-base64: "${{secrets.APPLE_DISTRIBUTION_CERT_BASE64}}"
+  #       p12-password: "${{secrets.APPLE_DISTRIBUTION_CERT_PASSWORD}}"
 
-    # PREPARE We also need the provisioning profile, we can download that from Apple AppCenter. Docs https://github.com/Apple-Actions/download-provisioning-profiles
-    - uses: Apple-Actions/download-provisioning-profiles@v2
-      with:
-        profile-type: "IOS_APP_STORE"
-        bundle-id: "com.lancelotsoftware.HackedApp"
-        issuer-id: "${{secrets.APPSTORE_API_ISSUER_ID}}"
-        api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
-        api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
+  #   # PREPARE We also need the provisioning profile, we can download that from Apple AppCenter. Docs https://github.com/Apple-Actions/download-provisioning-profiles
+  #   - uses: Apple-Actions/download-provisioning-profiles@v2
+  #     with:
+  #       profile-type: "IOS_APP_STORE"
+  #       bundle-id: "com.lancelotsoftware.HackedApp"
+  #       issuer-id: "${{secrets.APPSTORE_API_ISSUER_ID}}"
+  #       api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
+  #       api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
 
-    # BUILD Now we can build the iOS project. Docs https://learn.microsoft.com/en-us/dotnet/maui/ios/deployment/publish-cli?view=net-maui-8.0
-    - name: Build MAUI iOS project
-      run: |
-        dotnet build ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:PublishTrimmed=true -p:MtouchLink=SdkOnly -p:CodesignProvision=com.lancelotsoftware.HackedApp
+  #   # BUILD Now we can build the iOS project. Docs https://learn.microsoft.com/en-us/dotnet/maui/ios/deployment/publish-cli?view=net-maui-8.0
+  #   - name: Build MAUI iOS project
+  #     run: |
+  #       dotnet build ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:PublishTrimmed=true -p:MtouchLink=SdkOnly -p:CodesignProvision=com.lancelotsoftware.HackedApp
 
-        # These are defined dynamically in the csproj, but you can also add them in the command.
-        # CodesignProvision=com.LancelotSoftware.HackedApp; ApplicationId=com.LancelotSoftware.HackedApp; CodesignKey=Apple Distribution: Lancelot Software, LLC (L65255N3F7); RuntimeIdentifier=ios-arm64; ArchiveOnBuild=true;
+  #       # These are defined dynamically in the csproj, but you can also add them in the command.
+  #       # CodesignProvision=com.LancelotSoftware.HackedApp; ApplicationId=com.LancelotSoftware.HackedApp; CodesignKey=Apple Distribution: Lancelot Software, LLC (L65255N3F7); RuntimeIdentifier=ios-arm64; ArchiveOnBuild=true;
 
-    # PUBLISH You can use Apple's GitHub Actions to upload to TestFlight. Docs https://github.com/Apple-Actions/upload-testflight-build
-    - name: 'Upload app to TestFlight'
-      uses: apple-actions/upload-testflight-build@v1
-      with: 
-        app-path: "${{github.workspace}}/**/*.ipa" 
-        issuer-id: ${{secrets.APPSTORE_API_ISSUER_ID}}
-        api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
-        api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
+  #   # PUBLISH You can use Apple's GitHub Actions to upload to TestFlight. Docs https://github.com/Apple-Actions/upload-testflight-build
+  #   - name: 'Upload app to TestFlight'
+  #     uses: apple-actions/upload-testflight-build@v1
+  #     with: 
+  #       app-path: "${{github.workspace}}/**/*.ipa" 
+  #       issuer-id: ${{secrets.APPSTORE_API_ISSUER_ID}}
+  #       api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
+  #       api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
 
-    # PUBLISH Attach the artifact the Action's result
-    - name: Upload iOS artifacts
-      uses: actions/upload-artifact@v3
-      with:     
-        name: "iOS artifacts" 
-        path: "${{github.workspace}}/**/*.ipa"
-        if-no-files-found: warn
-        retention-days: 10
+  #   # PUBLISH Attach the artifact the Action's result
+  #   - name: Upload iOS artifacts
+  #     uses: actions/upload-artifact@v3
+  #     with:     
+  #       name: "iOS artifacts" 
+  #       path: "${{github.workspace}}/**/*.ipa"
+  #       if-no-files-found: warn
+  #       retention-days: 10
 
 
 # ********************************************************************** #
 #                         MacCatalyst
 # ********************************************************************** #
 
-  maccatalyst-release:
-    runs-on: macos-14
-    env:
-      TFM: net8.0-maccatalyst
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+  # maccatalyst-release:
+  #   runs-on: macos-14
+  #   env:
+  #     TFM: net8.0-maccatalyst
+  #   steps:
+  #   - name: Checkout
+  #     uses: actions/checkout@v4
+  #     with:
+  #       fetch-depth: 0
 
-    - name: Setup .NET Core SDK
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
+  #   - name: Setup .NET Core SDK
+  #     uses: actions/setup-dotnet@v4
+  #     with:
+  #       dotnet-version: '8.0.x'
 
-    - name: Install MAUI workloads
-      run: dotnet workload install maui --source "https://api.nuget.org/v3/index.json"
+  #   - name: Install MAUI workloads
+  #     run: dotnet workload install maui --source "https://api.nuget.org/v3/index.json"
 
-    # PREPARE Let's import the App code signing certificate. this action form Apple also supports using base64, which is a nice convenience. Docs https://github.com/Apple-Actions/import-codesign-certs
-    - name: Import Code-Signing Certificates
-      uses: Apple-Actions/import-codesign-certs@v2
-      with:
-        p12-file-base64: "${{secrets.APPLE_DISTRIBUTION_CERT_BASE64}}"
-        p12-password: "${{secrets.APPLE_DISTRIBUTION_CERT_PASSWORD}}"
+  #   # PREPARE Let's import the App code signing certificate. this action form Apple also supports using base64, which is a nice convenience. Docs https://github.com/Apple-Actions/import-codesign-certs
+  #   - name: Import Code-Signing Certificates
+  #     uses: Apple-Actions/import-codesign-certs@v2
+  #     with:
+  #       p12-file-base64: "${{secrets.APPLE_DISTRIBUTION_CERT_BASE64}}"
+  #       p12-password: "${{secrets.APPLE_DISTRIBUTION_CERT_PASSWORD}}"
 
-    # PREPARE We also need the provisioning profile, we can download that from Apple AppCenter. Docs https://github.com/Apple-Actions/download-provisioning-profiles
-    - uses: Apple-Actions/download-provisioning-profiles@v2
-      with:
-        profile-type: "MAC_APP_STORE"
-        bundle-id: "com.lancelotsoftware.HackedApp"
-        issuer-id: "${{secrets.APPSTORE_API_ISSUER_ID}}"
-        api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
-        api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
+  #   # PREPARE We also need the provisioning profile, we can download that from Apple AppCenter. Docs https://github.com/Apple-Actions/download-provisioning-profiles
+  #   - uses: Apple-Actions/download-provisioning-profiles@v2
+  #     with:
+  #       profile-type: "MAC_APP_STORE"
+  #       bundle-id: "com.lancelotsoftware.HackedApp"
+  #       issuer-id: "${{secrets.APPSTORE_API_ISSUER_ID}}"
+  #       api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
+  #       api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
 
-    # Docs https://learn.microsoft.com/en-us/dotnet/maui/mac-catalyst/deployment/publish-app-store?view=net-maui-8.0 (carefully follow the intructions about entitlements.plist and info.plist)
-    - name: Build MAUI MacCatalyst project
-      run: |
-        dotnet build ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:PublishTrimmed=true -p:MtouchLink=SdkOnly -p:CodesignProvision=com.lancelotsoftware.HackedApp
+  #   # Docs https://learn.microsoft.com/en-us/dotnet/maui/mac-catalyst/deployment/publish-app-store?view=net-maui-8.0 (carefully follow the intructions about entitlements.plist and info.plist)
+  #   - name: Build MAUI MacCatalyst project
+  #     run: |
+  #       dotnet build ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:PublishTrimmed=true -p:MtouchLink=SdkOnly -p:CodesignProvision=com.lancelotsoftware.HackedApp
         
-        # These are defined dynamically in the csproj, but you can also add them in the command.
-        # CodesignKey=Apple Distribution: Lancelot Software, LLC (L65255N3F7); CodesignEntitlements=Platforms\MacCatalyst\Entitlements.plist; RuntimeIdentifier=maccatalyst-x64; CreatePackage=true; EnableCodeSigning=true; EnablePackageSigning=true;
+  #       # These are defined dynamically in the csproj, but you can also add them in the command.
+  #       # CodesignKey=Apple Distribution: Lancelot Software, LLC (L65255N3F7); CodesignEntitlements=Platforms\MacCatalyst\Entitlements.plist; RuntimeIdentifier=maccatalyst-x64; CreatePackage=true; EnableCodeSigning=true; EnablePackageSigning=true;
 
-    - name: Upload maccatalyst artifacts
-      uses: actions/upload-artifact@v3
-      with:     
-        name: "maccatalyst artifacts" 
-        path: "${{github.workspace}}/**/*.pkg"
-        if-no-files-found: warn
-        retention-days: 10
+  #   - name: Upload maccatalyst artifacts
+  #     uses: actions/upload-artifact@v3
+  #     with:     
+  #       name: "maccatalyst artifacts" 
+  #       path: "${{github.workspace}}/**/*.pkg"
+  #       if-no-files-found: warn
+  #       retention-days: 10
     
