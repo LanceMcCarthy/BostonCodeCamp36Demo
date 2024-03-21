@@ -55,8 +55,9 @@
     <AndroidSigningKeyStore>dvlup.keystore</AndroidSigningKeyStore>
     <AndroidSigningKeyAlias>dvlup</AndroidSigningKeyAlias>
     <!-- These will be set in GitHub Actions
-        <AndroidSigningStorePass>$(android_keystore_password)</AndroidSigningStorePass>
-        <AndroidSigningKeyPass>$(android_keystore_alias_password)</AndroidSigningKeyPass>-->
+    <AndroidSigningStorePass>$(android_keystore_password)</AndroidSigningStorePass>
+    <AndroidSigningKeyPass>$(android_keystore_alias_password)</AndroidSigningKeyPass>
+    -->
   </PropertyGroup>
 
 
@@ -67,7 +68,7 @@
     <ProvisioningType>manual</ProvisioningType>
     <RuntimeIdentifier>ios-arm64</RuntimeIdentifier>
     <CodesignKey>Apple Distribution: Lancelot Software, LLC (L65255N3F7)</CodesignKey>
-    <!--<CodesignProvision>HackedApp_AppStore_Distribution_2023.mobileprovision</CodesignProvision>-->
+    <CodesignProvision>com.lancelotsoftware.HackedApp</CodesignProvision>
   </PropertyGroup>
 
 
@@ -79,7 +80,7 @@
     <EnableCodeSigning>true</EnableCodeSigning>
     <RuntimeIdentifier>maccatalyst-x64</RuntimeIdentifier>
     <CodesignKey>Apple Distribution: Lancelot Software, LLC (L65255N3F7)</CodesignKey>
-    <!--<CodesignProvision>HackedApp_MacStore_2023.provisionprofile</CodesignProvision>-->
+    <CodesignProvision>com.lancelotsoftware.HackedApp</CodesignProvision>
     <CodesignEntitlements>Platforms\MacCatalyst\Entitlements.plist</CodesignEntitlements>
   </PropertyGroup>
 
