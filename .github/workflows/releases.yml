@@ -165,7 +165,7 @@ jobs:
     # Now we can build the iOS project. Docs https://learn.microsoft.com/en-us/dotnet/maui/ios/deployment/publish-cli?view=net-maui-8.0
     - name: Build MAUI iOS project
       run: |
-        dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:PublishTrimmed=true -p:MtouchLink=SdkOnly -p:CodesignProvision=Hacked_AppStore_Distribution_2023
+        dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:PublishTrimmed=true -p:MtouchLink=SdkOnly
 
         # These are defined dynamically in the csproj, but you can also add them in the command.
         # CodesignProvision=com.LancelotSoftware.HackedApp; ApplicationId=com.LancelotSoftware.HackedApp; CodesignKey=Apple Distribution: Lancelot Software, LLC (L65255N3F7); RuntimeIdentifier=ios-arm64; ArchiveOnBuild=true;
@@ -230,14 +230,14 @@ jobs:
     # Docs https://learn.microsoft.com/en-us/dotnet/maui/mac-catalyst/deployment/publish-app-store?view=net-maui-8.0 (carefully follow the intructions about entitlements.plist and info.plist)
     - name: Build MAUI MacCatalyst project
       run: |
-        dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:PublishTrimmed=true -p:MtouchLink=SdkOnly -p:CodesignProvision=Hacked_MacStore_Distribution_2023
+        dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:PublishTrimmed=true -p:MtouchLink=SdkOnly
         
         # These are defined dynamically in the csproj, but you can also add them in the command.
         # CodesignKey=Apple Distribution: Lancelot Software, LLC (L65255N3F7); CodesignEntitlements=Platforms\MacCatalyst\Entitlements.plist; RuntimeIdentifier=maccatalyst-x64; CreatePackage=true; EnableCodeSigning=true; EnablePackageSigning=true;
 
     - name: Upload maccatalyst artifacts
       uses: actions/upload-artifact@v4
-      with:     
+      with:
         name: "maccatalyst artifacts" 
         path: "${{github.workspace}}/**/*.pkg"
         if-no-files-found: warn
