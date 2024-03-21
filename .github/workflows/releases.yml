@@ -124,9 +124,10 @@ jobs:
 
     - name: Update manifest's publisher identity, using the certificate's subject
       run: |
-        [xml]$manifest = get-content "${{github.workspace}}\src\MauiDemo\Platforms\Windows\Package.appxmanifest"
+        $manifestFilePath = "${{github.workspace}}\src\MauiDemo\Platforms\Windows\Package.appxmanifest"
+        [xml]$manifest = Get-Content $manifestFilePath
         $manifest.Package.Identity.Publisher = '${{steps.install-cert.outputs.SUBJECT}}'
-        $manifest.save("src\MediaFileManager\PackageProject\Package.appxmanifest")
+        $manifest.save($manifestFilePath)
 
     # Docs https://learn.microsoft.com/en-us/dotnet/maui/windows/deployment/publish-cli?view=net-maui-8.0
     - name: Build Maui WinUI project
@@ -180,7 +181,7 @@ jobs:
     - uses: Apple-Actions/download-provisioning-profiles@v2
       with:
         profile-type: "IOS_APP_STORE"
-        bundle-id: "com.LancelotSoftware.HackedApp"
+        bundle-id: "com.lancelotsoftware.HackedApp"
         issuer-id: "${{secrets.APPSTORE_API_ISSUER_ID}}"
         api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
         api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
@@ -245,7 +246,7 @@ jobs:
     - uses: Apple-Actions/download-provisioning-profiles@v2
       with:
         profile-type: "MAC_APP_STORE"
-        bundle-id: "com.LancelotSoftware.HackedApp"
+        bundle-id: "com.lancelotsoftware.HackedApp"
         issuer-id: "${{secrets.APPSTORE_API_ISSUER_ID}}"
         api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
         api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
