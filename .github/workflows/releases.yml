@@ -154,18 +154,24 @@ jobs:
         p12-password: "${{secrets.APPLE_DISTRIBUTION_CERT_PASSWORD}}"
 
     # We also need the provisioning profile, we can download that from Apple AppCenter. Docs https://github.com/Apple-Actions/download-provisioning-profiles
-    - uses: Apple-Actions/download-provisioning-profiles@v2
-      with:
-        profile-type: "IOS_APP_STORE"
-        bundle-id: "com.lancelotsoftware.HackedApp"
-        issuer-id: "${{secrets.APPSTORE_API_ISSUER_ID}}"
-        api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
-        api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
+    # - uses: Apple-Actions/download-provisioning-profiles@v2
+    #   with:
+    #     profile-type: "IOS_APP_STORE"
+    #     bundle-id: "com.lancelotsoftware.HackedApp"
+    #     issuer-id: "${{secrets.APPSTORE_API_ISSUER_ID}}"
+    #     api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
+    #     api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
+
+    - name: Save provisioning profile
+      run: |
+        set -euo pipefail
+        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+        echo "${{secrets.HACKED_APPSTORE_DISTRIBUTION_BASE64}}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/Hacked_AppStore_Distribution_2023.mobileprovision
 
     # Now we can build the iOS project. Docs https://learn.microsoft.com/en-us/dotnet/maui/ios/deployment/publish-cli?view=net-maui-8.0
     - name: Build MAUI iOS project
       run: |
-        dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:PublishTrimmed=true -p:MtouchLink=SdkOnly
+        dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:PublishTrimmed=true -p:MtouchLink=SdkOnly -p:CodesignProvision=Hacked_AppStore_Distribution_2023.mobileprovision
 
         # These are defined dynamically in the csproj, but you can also add them in the command.
         # CodesignProvision=com.LancelotSoftware.HackedApp; ApplicationId=com.LancelotSoftware.HackedApp; CodesignKey=Apple Distribution: Lancelot Software, LLC (L65255N3F7); RuntimeIdentifier=ios-arm64; ArchiveOnBuild=true;
@@ -218,19 +224,25 @@ jobs:
         p12-file-base64: "${{secrets.APPLE_DISTRIBUTION_CERT_BASE64}}"
         p12-password: "${{secrets.APPLE_DISTRIBUTION_CERT_PASSWORD}}"
 
-    # PREPARE We also need the provisioning profile, we can download that from Apple AppCenter. Docs https://github.com/Apple-Actions/download-provisioning-profiles
-    - uses: Apple-Actions/download-provisioning-profiles@v2
-      with:
-        profile-type: "MAC_APP_STORE"
-        bundle-id: "com.lancelotsoftware.HackedApp"
-        issuer-id: "${{secrets.APPSTORE_API_ISSUER_ID}}"
-        api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
-        api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
+    # # PREPARE We also need the provisioning profile, we can download that from Apple AppCenter. Docs https://github.com/Apple-Actions/download-provisioning-profiles
+    # - uses: Apple-Actions/download-provisioning-profiles@v2
+    #   with:
+    #     profile-type: "MAC_APP_STORE"
+    #     bundle-id: "com.lancelotsoftware.HackedApp"
+    #     issuer-id: "${{secrets.APPSTORE_API_ISSUER_ID}}"
+    #     api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
+    #     api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
+
+    - name: Save provisioning profile
+      run: |
+        set -euo pipefail
+        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+        echo "${{secrets.HACKED_MACSTORE_DISTRIBUTION_BASE64}}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/Hacked_MacStore_Distribution_2023.provisionprofile
 
     # Docs https://learn.microsoft.com/en-us/dotnet/maui/mac-catalyst/deployment/publish-app-store?view=net-maui-8.0 (carefully follow the intructions about entitlements.plist and info.plist)
     - name: Build MAUI MacCatalyst project
       run: |
-        dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:PublishTrimmed=true -p:MtouchLink=SdkOnly
+        dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:PublishTrimmed=true -p:MtouchLink=SdkOnly -p:CodesignProvision=Hacked_MacStore_Distribution_2023.provisionprofile
         
         # These are defined dynamically in the csproj, but you can also add them in the command.
         # CodesignKey=Apple Distribution: Lancelot Software, LLC (L65255N3F7); CodesignEntitlements=Platforms\MacCatalyst\Entitlements.plist; RuntimeIdentifier=maccatalyst-x64; CreatePackage=true; EnableCodeSigning=true; EnablePackageSigning=true;
