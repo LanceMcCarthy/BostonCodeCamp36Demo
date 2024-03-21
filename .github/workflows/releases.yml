@@ -84,27 +84,35 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    # For WinUI builds
-    - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.3.2
+    # - name: Add msbuild to PATH
+    #   uses: microsoft/setup-msbuild@v1.3.2
 
-    - name: Decode the Pfx
-      id: save-certfile
+    # - name: Base64 To PFX file
+    #   id: write_file
+    #   uses: timheuer/base64-to-file@v1.2
+    #   with:
+    #     fileName: "${{ secrets.CODESIGN_CERTIFICATE_FILENAME }}"
+    #     fileDir: "${{github.workspace}}"
+    #     encodedString: ${{ secrets.CODESIGN_CERTIFICATE_BASE64 }}
+
+    - name: Import Cert
       run: |
         $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.CODESIGN_CERTIFICATE_BASE64 }}")
         $currentDirectory = Get-Location
         $certificatePath = Join-Path -Path $currentDirectory -ChildPath "src\MauiDemo" -AdditionalChildPath "${{ secrets.CODESIGN_CERTIFICATE_FILENAME }}"
         [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
-        echo "CERT_PATH=$certificatePath" >> "$GITHUB_OUTPUT"
+        CERTUTIL -f -p "${{secrets.CODESIGN_CERTIFICATE_PASSWORD}}" -importpfx $certificatePath
 
     - name: Install MAUI workloads
       run: dotnet workload install maui --source "https://api.nuget.org/v3/index.json"
 
     # Docs https://learn.microsoft.com/en-us/dotnet/maui/windows/deployment/publish-cli?view=net-maui-8.0
     - name: Build Maui WinUI project
-      run: dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:RuntimeIdentifierOverride=win10-x64 -p:PublishTrimmed=False -p:GenerateAppxPackageOnBuild=true -p:AppxPackageSigningEnabled=true -p:PackageCertificateKeyFile="${{steps.save-certfile.outputs.CERT_PATH}}" -p:PackageCertificatePassword="${{secrets.CODESIGN_CERTIFICATE_PASSWORD}}" -p:PackageCertificateThumbprint=${{ secrets.CODESIGN_CERTIFICATE_THUMBPRINT }}
+      run: |
+        dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:RuntimeIdentifierOverride=win10-x64 -p:PublishTrimmed=False -p:GenerateAppxPackageOnBuild=true -p:AppxPackageSigningEnabled=true -p:PackageCertificatePassword="${{secrets.CODESIGN_CERTIFICATE_PASSWORD}}" -p:PackageCertificateThumbprint=${{secrets.CODESIGN_CERTIFICATE_THUMBPRINT}}
+        
 
-    # automaticl publishing to the Microsoft Store can be found here
+    # automatic publishing to the Microsoft Store can be found here
     - name: Upload WinUI artifacts
       uses: actions/upload-artifact@v3
       with:     
@@ -155,7 +163,7 @@ jobs:
     # BUILD Now we can build the iOS project. Docs https://learn.microsoft.com/en-us/dotnet/maui/ios/deployment/publish-cli?view=net-maui-8.0
     - name: Build MAUI iOS project
       run: |
-        dotnet build ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} '-p:RuntimeIdentifier=ios-arm64;PublishTrimmed=true;MtouchLink=SdkOnly;ArchiveOnBuild=true;CodesignProvision=MauiDemo;CodesignKey="Apple Distribution: Lancelot Software, LLC (L65255N3F7)"";'
+        dotnet build ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} "p:RuntimeIdentifier=ios-arm64;PublishTrimmed=true;MtouchLink=SdkOnly;ArchiveOnBuild=true;CodesignProvision=MauiDemo;ApplicationId=L65255N3F7.MauiDemo;CodesignKey=Apple Distribution: Lancelot Software, LLC (L65255N3F7);"
 
     # PUBLISH You can use Apple's GitHub Actions to upload to TestFlight. Docs https://github.com/Apple-Actions/upload-testflight-build
     - name: 'Upload app to TestFlight'
@@ -209,7 +217,7 @@ jobs:
     - uses: Apple-Actions/download-provisioning-profiles@v2
       with:
         profile-type: "MAC_APP_STORE"
-        bundle-id: "MauiDemoMacCatalyst"
+        bundle-id: "MauiDemo"
         issuer-id: "${{secrets.APPSTORE_API_ISSUER_ID}}"
         api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
         api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
@@ -217,7 +225,7 @@ jobs:
     # Docs https://learn.microsoft.com/en-us/dotnet/maui/mac-catalyst/deployment/publish-app-store?view=net-maui-8.0 (carefully follow the intructions about entitlements.plist and info.plist)
     - name: Build MAUI MacCatalyst project
       run: |
-        dotnet build ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} '-p:PublishTrimmed=true;MtouchLink=SdkOnly;CreatePackage=true;EnableCodeSigning=true;EnablePackageSigning=true;CodesignProvision=MauiDemoMacCatalyst;CodesignEntitlements=Platforms\MacCatalyst\Entitlements.plist;CodesignKey="Apple Distribution: Lancelot Software, LLC (L65255N3F7)";'
+        dotnet build ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} "-p:PublishTrimmed=true;MtouchLink=SdkOnly;CreatePackage=true;EnableCodeSigning=true;EnablePackageSigning=true;CodesignProvision=MauiDemo;CodesignEntitlements=Platforms\MacCatalyst\Entitlements.plist;CodesignKey=Apple Distribution: Lancelot Software, LLC (L65255N3F7)";
 
     - name: Upload maccatalyst artifacts
       uses: actions/upload-artifact@v3
