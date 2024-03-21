@@ -24,6 +24,7 @@
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
     <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+    
   </PropertyGroup>
 
   <!-- Maui-specific stuff -->
@@ -62,6 +63,7 @@
   <!-- ******** iOS release build will use these properties ******** -->
 
   <PropertyGroup Condition="$(TargetFramework.Contains('-ios')) and '$(Configuration)' == 'Release'">
+    <ArchiveOnBuild>true</ArchiveOnBuild>
     <ProvisioningType>manual</ProvisioningType>
     <RuntimeIdentifier>ios-arm64</RuntimeIdentifier>
     <CodesignKey>Apple Distribution: Lancelot Software, LLC (L65255N3F7)</CodesignKey>
@@ -72,16 +74,29 @@
   <!-- ******** MacCatalyst release build will use these properties ******** -->
 
   <PropertyGroup Condition="$(TargetFramework.Contains('-maccatalyst')) and '$(Configuration)' == 'Release'">
+    <CreatePackage>true</CreatePackage>
+    <EnablePackageSigning>true</EnablePackageSigning>
+    <EnableCodeSigning>true</EnableCodeSigning>
     <RuntimeIdentifier>maccatalyst-x64</RuntimeIdentifier>
     <CodesignKey>Apple Distribution: Lancelot Software, LLC (L65255N3F7)</CodesignKey>
     <CodesignProvision>HackedApp_MacStore_2023.provisionprofile</CodesignProvision>
+    <CodesignEntitlements>Platforms\MacCatalyst\Entitlements.plist</CodesignEntitlements>
   </PropertyGroup>
 
   <!-- ******** Windows release build will use these properties ******** -->
 
   <PropertyGroup Condition="$(TargetFramework.Contains('-windows10.0.19041.0')) and '$(Configuration)' == 'Release'">
     <AppxPackageSigningEnabled>true</AppxPackageSigningEnabled>
-    <PackageCertificateThumbprint>A10612AF095FD8F8255F4C6691D88F79EF2B135E</PackageCertificateThumbprint>
+    <PackageCertificateThumbprint>f59e815b12eb302afb967d855bdec315d27db6b3</PackageCertificateThumbprint>
+    <GenerateAppInstallerFile>True</GenerateAppInstallerFile>
+    <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
+    <PackageCertificateThumbprint>8C787DDFAB5DD35C64AE7914982780CF25B9F839</PackageCertificateThumbprint>
+    <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
+    <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
+    <AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
+    <GenerateTestArtifacts>False</GenerateTestArtifacts>
+    <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
+    <DefaultLanguage>en-us</DefaultLanguage>
   </PropertyGroup>
 
 </Project>
