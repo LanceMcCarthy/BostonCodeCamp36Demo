@@ -124,7 +124,7 @@ jobs:
 
     - name: Update manifest's publisher identity, using the certificate's subject
       run: |
-        [xml]$manifest = get-content "src\MauiDemo\Platforms\Windows\Package.appxmanifest"
+        [xml]$manifest = get-content "${{github.workspace}}\src\MauiDemo\Platforms\Windows\Package.appxmanifest"
         $manifest.Package.Identity.Publisher = '${{steps.install-cert.outputs.SUBJECT}}'
         $manifest.save("src\MediaFileManager\PackageProject\Package.appxmanifest")
 
@@ -180,7 +180,7 @@ jobs:
     - uses: Apple-Actions/download-provisioning-profiles@v2
       with:
         profile-type: "IOS_APP_STORE"
-        bundle-id: "HackedApp"
+        bundle-id: "com.LancelotSoftware.HackedApp"
         issuer-id: "${{secrets.APPSTORE_API_ISSUER_ID}}"
         api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
         api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
@@ -191,7 +191,7 @@ jobs:
         dotnet build ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:PublishTrimmed=true -p:MtouchLink=SdkOnly
 
         # These are defined dynamically in the csproj, but you can also add them in the command.
-        # CodesignProvision=HackedApp; ApplicationId=HackedApp; CodesignKey=Apple Distribution: Lancelot Software, LLC (L65255N3F7); RuntimeIdentifier=ios-arm64; ArchiveOnBuild=true;
+        # CodesignProvision=com.LancelotSoftware.HackedApp; ApplicationId=com.LancelotSoftware.HackedApp; CodesignKey=Apple Distribution: Lancelot Software, LLC (L65255N3F7); RuntimeIdentifier=ios-arm64; ArchiveOnBuild=true;
 
     # PUBLISH You can use Apple's GitHub Actions to upload to TestFlight. Docs https://github.com/Apple-Actions/upload-testflight-build
     - name: 'Upload app to TestFlight'
@@ -245,7 +245,7 @@ jobs:
     - uses: Apple-Actions/download-provisioning-profiles@v2
       with:
         profile-type: "MAC_APP_STORE"
-        bundle-id: "HackedApp"
+        bundle-id: "com.LancelotSoftware.HackedApp"
         issuer-id: "${{secrets.APPSTORE_API_ISSUER_ID}}"
         api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
         api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
@@ -256,7 +256,7 @@ jobs:
         dotnet build ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:PublishTrimmed=true -p:MtouchLink=SdkOnly
         
         # These are defined dynamically in the csproj, but you can also add them in the command.
-        # CodesignKey=Apple Distribution: Lancelot Software, LLC (L65255N3F7); CodesignProvision=HackedApp; CodesignEntitlements=Platforms\MacCatalyst\Entitlements.plist; RuntimeIdentifier=maccatalyst-x64; CreatePackage=true; EnableCodeSigning=true; EnablePackageSigning=true;
+        # CodesignKey=Apple Distribution: Lancelot Software, LLC (L65255N3F7); CodesignProvision=com.LancelotSoftware.HackedApp; CodesignEntitlements=Platforms\MacCatalyst\Entitlements.plist; RuntimeIdentifier=maccatalyst-x64; CreatePackage=true; EnableCodeSigning=true; EnablePackageSigning=true;
 
     - name: Upload maccatalyst artifacts
       uses: actions/upload-artifact@v3
