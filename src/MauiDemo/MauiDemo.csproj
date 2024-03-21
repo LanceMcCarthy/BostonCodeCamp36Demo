@@ -68,7 +68,7 @@
     <ProvisioningType>manual</ProvisioningType>
     <RuntimeIdentifier>ios-arm64</RuntimeIdentifier>
     <CodesignKey>Apple Distribution: Lancelot Software, LLC (L65255N3F7)</CodesignKey>
-    <CodesignProvision>com.lancelotsoftware.HackedApp</CodesignProvision>
+    <CodesignProvision>Hacked_AppStore_Distribution_2023.mobileprovision</CodesignProvision>
   </PropertyGroup>
 
 
@@ -80,7 +80,7 @@
     <EnableCodeSigning>true</EnableCodeSigning>
     <RuntimeIdentifier>maccatalyst-x64</RuntimeIdentifier>
     <CodesignKey>Apple Distribution: Lancelot Software, LLC (L65255N3F7)</CodesignKey>
-    <CodesignProvision>com.lancelotsoftware.HackedApp</CodesignProvision>
+    <CodesignProvision>MauiDemoMac_AppStore_2024.provisionprofile</CodesignProvision>
     <CodesignEntitlements>Platforms\MacCatalyst\Entitlements.plist</CodesignEntitlements>
   </PropertyGroup>
 
