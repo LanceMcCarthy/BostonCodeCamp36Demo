@@ -20,49 +20,49 @@ jobs:
 #                            Android
 # ********************************************************************** #
 
-  # android-release:
-  #   runs-on: windows-2022
-  #   env:
-  #     TFM: net8.0-android
-  #     ARTIFACTS_PATH: "artifacts_android"
-  #   steps:
-  #   - name: Checkout
-  #     uses: actions/checkout@v4
-  #     with:
-  #       fetch-depth: 0
+  android-release:
+    runs-on: windows-2022
+    env:
+      TFM: net8.0-android
+      ARTIFACTS_PATH: "artifacts_android"
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-  #   - name: Setup .NET SDK
-  #     uses: actions/setup-dotnet@v4
-  #     with:
-  #       dotnet-version: '8.0.x'
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
 
-  #   - uses: actions/setup-java@v4
-  #     with:
-  #       distribution: 'microsoft'
-  #       java-version: '11'
+    - uses: actions/setup-java@v4
+      with:
+        distribution: 'microsoft'
+        java-version: '11'
     
-  #   - name: Decode the Keystore into File
-  #     run: |
-  #       $file_bytes = [System.Convert]::FromBase64String("${{secrets.ANDROID_SIGNING_KEYSTORE_BASE64}}")
-  #       [IO.File]::WriteAllBytes("${{github.workspace}}/${{secrets.ANDROID_SIGNING_KEYSTORE_FILENAME}}", $file_bytes)
+    - name: Decode the Keystore into File
+      run: |
+        $file_bytes = [System.Convert]::FromBase64String("${{secrets.ANDROID_SIGNING_KEYSTORE_BASE64}}")
+        [IO.File]::WriteAllBytes("${{github.workspace}}/${{secrets.ANDROID_SIGNING_KEYSTORE_FILENAME}}", $file_bytes)
     
-  #   - name: Install MAUI workloads
-  #     run: dotnet workload install maui --source "https://api.nuget.org/v3/index.json"
+    - name: Install MAUI workloads
+      run: dotnet workload install maui --source "https://api.nuget.org/v3/index.json"
 
-  #   - name: Restore NuGet packages
-  #     run: dotnet restore ${{env.PROJECT_PATH}}
+    - name: Restore NuGet packages
+      run: dotnet restore ${{env.PROJECT_PATH}}
 
-  #   # Docs https://learn.microsoft.com/en-us/dotnet/maui/android/deployment/publish-cli?view=net-maui-8.0
-  #   - name: Build MAUI Android project
-  #     run: dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} --no-restore -p:AndroidKeyStore=true -p:AndroidSigningKeyStore="${{github.workspace}}/${{secrets.ANDROID_SIGNING_KEYSTORE_FILENAME}}" -p:AndroidSigningStorePass="${{secrets.ANDROID_SIGNING_STORE_PASS}}" -p:AndroidSigningKeyAlias="${{secrets.ANDROID_SIGNING_KEY_ALIAS}}" -p:AndroidSigningKeyPass="${{secrets.ANDROID_SIGNING_KEY_PASS}}"
+    # Docs https://learn.microsoft.com/en-us/dotnet/maui/android/deployment/publish-cli?view=net-maui-8.0
+    - name: Build MAUI Android project
+      run: dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} --no-restore -p:AndroidKeyStore=true -p:AndroidSigningKeyStore="${{github.workspace}}/${{secrets.ANDROID_SIGNING_KEYSTORE_FILENAME}}" -p:AndroidSigningStorePass="${{secrets.ANDROID_SIGNING_STORE_PASS}}" -p:AndroidSigningKeyAlias="${{secrets.ANDROID_SIGNING_KEY_ALIAS}}" -p:AndroidSigningKeyPass="${{secrets.ANDROID_SIGNING_KEY_PASS}}"
 
-  #   - name: Upload Android artifacts (APKs & AABs)
-  #     uses: actions/upload-artifact@v3
-  #     with:
-  #       name: "Android Artifacts" 
-  #       path: "${{github.workspace}}/**/*Signed.a*"
-  #       if-no-files-found: warn
-  #       retention-days: 10
+    - name: Upload Android artifacts (APKs & AABs)
+      uses: actions/upload-artifact@v3
+      with:
+        name: "Android Artifacts" 
+        path: "${{github.workspace}}/**/*Signed.a*"
+        if-no-files-found: warn
+        retention-days: 10
 
 
 # ********************************************************************** #
@@ -95,21 +95,13 @@ jobs:
         fileDir: "${{github.workspace}}"
         encodedString: ${{ secrets.CODESIGN_CERTIFICATE_BASE64 }}
 
-    # - name: Import Cert
-    #   run: |
-    #     $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.CODESIGN_CERTIFICATE_BASE64 }}")
-    #     $currentDirectory = Get-Location
-    #     $certificatePath = Join-Path -Path $currentDirectory -ChildPath "src\MauiDemo" -AdditionalChildPath "${{ secrets.CODESIGN_CERTIFICATE_FILENAME }}"
-    #     [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
-    #     CERTUTIL -f -p "${{secrets.CODESIGN_CERTIFICATE_PASSWORD}}" -importpfx $certificatePath
-
     - name: Install MAUI workloads
       run: dotnet workload install maui --source "https://api.nuget.org/v3/index.json"
     
     - name: Create Codesigning Cert
       id: certgen
       run: |
-        # Normally you would import your own cert here (see https://github.com/marketplace/actions/base64-to-file). For simplicity, we will use a quick self-signed one
+        # Normally you would import your own cert here (see https://github.com/marketplace/actions/base64-to-file).
         $cert = New-SelfSignedCertificate -Type Custom -Subject "CN=LancelotTemp" -KeyUsage DigitalSignature -FriendlyName "LancelotTemp" -CertStoreLocation "Cert:\CurrentUser\My" -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
         $thumb=$cert.Thumbprint
         echo "thumbprint=$thumb" >> "$ENV:GITHUB_OUTPUT"
@@ -117,17 +109,15 @@ jobs:
     # Docs https://learn.microsoft.com/en-us/dotnet/maui/windows/deployment/publish-cli?view=net-maui-8.0
     - name: Build Maui WinUI project
       run: |
-        echo "Thumbprint ${{steps.certgen.outputs.thumbprint}}"
-
         dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:RuntimeIdentifierOverride=win10-x64 -p:PublishTrimmed=False -p:GenerateAppxPackageOnBuild=true -p:AppxPackageSigningEnabled=true -p:PackageCertificateThumbprint=${{steps.certgen.outputs.thumbprint}}
 
-        # Instead of generating a cert, you can just directly use your PFX (or just use azcodesign)
+        # With your own pfx file (or just use azcodesign)
         # -p:PackageCertificateKeyFile="${{steps.write_file.outputs.filePath}}" -p:PackageCertificatePassword="${{secrets.CODESIGN_CERTIFICATE_PASSWORD}}"
         
 
     # automatic publishing to the Microsoft Store can be found here
     - name: Upload WinUI artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:     
         name: "WINUI Artifacts" 
         path: "${{github.workspace}}/**/*.msix"
