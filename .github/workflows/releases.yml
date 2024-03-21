@@ -107,22 +107,18 @@ jobs:
       run: dotnet workload install maui --source "https://api.nuget.org/v3/index.json"
     
     - name: Create Codesigning Cert
-      id: install-cert
+      id: certgen
       run: |
-        # Normally you would import your own cert here, see https://github.com/marketplace/actions/base64-to-file
-        # For simplicity, we will use a quick self-signed one
-        New-SelfSignedCertificate -Type Custom -Subject "CN=LancelotTemp" -KeyUsage DigitalSignature -FriendlyName "LancelotTemp" -CertStoreLocation "Cert:\CurrentUser\My" -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
-
-        # This reads the thumbprint from the new certificate we just created
-        $cert = Get-ChildItem "Cert:\CurrentUser\My" | Where-Object { $_.Subject -eq 'CN=LancelotTemp' }
-        $thumprint = $cert.Thumbprint
-        echo "NEWCERT_THUMBPRINT=$thumprint" >> $GITHUB_ENV
+        # Normally you would import your own cert here (see https://github.com/marketplace/actions/base64-to-file). For simplicity, we will use a quick self-signed one
+        $cert = New-SelfSignedCertificate -Type Custom -Subject "CN=LancelotTemp" -KeyUsage DigitalSignature -FriendlyName "LancelotTemp" -CertStoreLocation "Cert:\CurrentUser\My" -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
+        echo "thumbprint=$cert.Thumbprint" >> "$ENV:GITHUB_OUTPUT"
 
     # Docs https://learn.microsoft.com/en-us/dotnet/maui/windows/deployment/publish-cli?view=net-maui-8.0
     - name: Build Maui WinUI project
       run: |
-        echo "confirm thumbprint ${{env.NEWCERT_THUMBPRINT}}" 
-        dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:RuntimeIdentifierOverride=win10-x64 -p:PublishTrimmed=False -p:GenerateAppxPackageOnBuild=true -p:AppxPackageSigningEnabled=true -p:PackageCertificateThumbprint=${{env.NEWCERT_THUMBPRINT}}
+        echo "Thumbprint ${{steps.certgen.outputs.thumbprint}}"
+
+        dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:RuntimeIdentifierOverride=win10-x64 -p:PublishTrimmed=False -p:GenerateAppxPackageOnBuild=true -p:AppxPackageSigningEnabled=true -p:PackageCertificateThumbprint=${{steps.certgen.outputs.thumbprint}}
 
         # Instead of generating a cert, you can just directly use your PFX (or just use azcodesign)
         # -p:PackageCertificateKeyFile="${{steps.write_file.outputs.filePath}}" -p:PackageCertificatePassword="${{secrets.CODESIGN_CERTIFICATE_PASSWORD}}"
@@ -179,7 +175,7 @@ jobs:
     # BUILD Now we can build the iOS project. Docs https://learn.microsoft.com/en-us/dotnet/maui/ios/deployment/publish-cli?view=net-maui-8.0
     - name: Build MAUI iOS project
       run: |
-        dotnet build ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:PublishTrimmed=true -p:MtouchLink=SdkOnly -p:CodesignProvision=HackedApp
+        dotnet build ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:PublishTrimmed=true -p:MtouchLink=SdkOnly -p:CodesignProvision=com.lancelotsoftware.HackedApp
 
         # These are defined dynamically in the csproj, but you can also add them in the command.
         # CodesignProvision=com.LancelotSoftware.HackedApp; ApplicationId=com.LancelotSoftware.HackedApp; CodesignKey=Apple Distribution: Lancelot Software, LLC (L65255N3F7); RuntimeIdentifier=ios-arm64; ArchiveOnBuild=true;
@@ -244,7 +240,7 @@ jobs:
     # Docs https://learn.microsoft.com/en-us/dotnet/maui/mac-catalyst/deployment/publish-app-store?view=net-maui-8.0 (carefully follow the intructions about entitlements.plist and info.plist)
     - name: Build MAUI MacCatalyst project
       run: |
-        dotnet build ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:PublishTrimmed=true -p:MtouchLink=SdkOnly -p:CodesignProvision=HackedApp
+        dotnet build ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:PublishTrimmed=true -p:MtouchLink=SdkOnly -p:CodesignProvision=com.lancelotsoftware.HackedApp
         
         # These are defined dynamically in the csproj, but you can also add them in the command.
         # CodesignKey=Apple Distribution: Lancelot Software, LLC (L65255N3F7); CodesignEntitlements=Platforms\MacCatalyst\Entitlements.plist; RuntimeIdentifier=maccatalyst-x64; CreatePackage=true; EnableCodeSigning=true; EnablePackageSigning=true;
