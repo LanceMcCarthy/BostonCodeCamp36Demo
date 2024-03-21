@@ -57,7 +57,7 @@ jobs:
       run: dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} --no-restore -p:AndroidKeyStore=true -p:AndroidSigningKeyStore="${{github.workspace}}/${{secrets.ANDROID_SIGNING_KEYSTORE_FILENAME}}" -p:AndroidSigningStorePass="${{secrets.ANDROID_SIGNING_STORE_PASS}}" -p:AndroidSigningKeyAlias="${{secrets.ANDROID_SIGNING_KEY_ALIAS}}" -p:AndroidSigningKeyPass="${{secrets.ANDROID_SIGNING_KEY_PASS}}"
 
     - name: Upload Android artifacts (APKs & AABs)
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: "Android Artifacts" 
         path: "${{github.workspace}}/**/*Signed.a*"
@@ -182,7 +182,7 @@ jobs:
 
   #   # PUBLISH Attach the artifact the Action's result
   #   - name: Upload iOS artifacts
-  #     uses: actions/upload-artifact@v3
+  #     uses: actions/upload-artifact@v4
   #     with:     
   #       name: "iOS artifacts" 
   #       path: "${{github.workspace}}/**/*.ipa"
@@ -237,7 +237,7 @@ jobs:
   #       # CodesignKey=Apple Distribution: Lancelot Software, LLC (L65255N3F7); CodesignEntitlements=Platforms\MacCatalyst\Entitlements.plist; RuntimeIdentifier=maccatalyst-x64; CreatePackage=true; EnableCodeSigning=true; EnablePackageSigning=true;
 
   #   - name: Upload maccatalyst artifacts
-  #     uses: actions/upload-artifact@v3
+  #     uses: actions/upload-artifact@v4
   #     with:     
   #       name: "maccatalyst artifacts" 
   #       path: "${{github.workspace}}/**/*.pkg"
