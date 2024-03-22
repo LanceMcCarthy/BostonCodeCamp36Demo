@@ -8,11 +8,6 @@
     <SingleProject>true</SingleProject>
     <ImplicitUsings>enable</ImplicitUsings>
 
-    <!-- Display name -->
-    <ApplicationTitle>HackedApp</ApplicationTitle>
-
-    <!-- App Identifier -->
-    <ApplicationId>com.lancelotsoftware.HackedApp</ApplicationId>
     <ApplicationIdGuid>C3D88449-48E7-45F6-9026-0766A05CC4DD</ApplicationIdGuid>
 
     <!-- Versions -->
@@ -24,7 +19,6 @@
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
     <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
-    
   </PropertyGroup>
 
   <!-- Maui-specific stuff -->
@@ -46,9 +40,26 @@
   </ItemGroup>
 
 
-  <!-- DYNAMIC CONDITIONS FOR CI BUILDS -->
+  <!-- ******* DYNAMIC CONDITIONS FOR CI BUILDS ******* -->
 
-  <!-- ******** Android release build will use these properties ******** -->
+  <!-- DEBUG builds -->
+
+  <PropertyGroup Condition="$(TargetFramework.Contains('net8.0')) and '$(Configuration)' == 'Debug'">
+    <ApplicationTitle>MauiDemo</ApplicationTitle>
+    <ApplicationId>MauiDemo</ApplicationId>
+    <AppxPackageSigningEnabled>False</AppxPackageSigningEnabled>
+    <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
+    <AppxPackageSigningEnabled>False</AppxPackageSigningEnabled>
+    <AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
+    <GenerateTestArtifacts>False</GenerateTestArtifacts>
+    <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
+    <DefaultLanguage>en-us</DefaultLanguage>
+  </PropertyGroup>
+
+
+  <!-- RELEASE builds -->
+
+  <!-- Android -->
 
   <PropertyGroup Condition="$(TargetFramework.Contains('-android')) and '$(Configuration)' == 'Release'">
     <AndroidKeyStore>True</AndroidKeyStore>
@@ -61,7 +72,7 @@
   </PropertyGroup>
 
 
-  <!-- ******** iOS release build will use these properties ******** -->
+  <!-- iOS -->
 
   <PropertyGroup Condition="$(TargetFramework.Contains('-ios')) and '$(Configuration)' == 'Release'">
     <ArchiveOnBuild>true</ArchiveOnBuild>
@@ -69,11 +80,11 @@
     <RuntimeIdentifier>ios-arm64</RuntimeIdentifier>
     <CodesignKey>Apple Distribution: Lancelot Software, LLC (L65255N3F7)</CodesignKey>
     <CodesignProvision>Hacked_AppStore_Distribution_2023</CodesignProvision>
-    <ApplicationId>com.lancelotsoftware.HackedApp</ApplicationId>
+    <ApplicationId>MauiDemo</ApplicationId>
   </PropertyGroup>
 
 
-  <!-- ******** MacCatalyst release build will use these properties ******** -->
+  <!-- MacCatalyst -->
 
   <PropertyGroup Condition="$(TargetFramework.Contains('-maccatalyst')) and '$(Configuration)' == 'Release'">
     <CreatePackage>true</CreatePackage>
@@ -81,12 +92,12 @@
     <EnableCodeSigning>true</EnableCodeSigning>
     <RuntimeIdentifier>maccatalyst-x64</RuntimeIdentifier>
     <CodesignKey>Apple Distribution: Lancelot Software, LLC (L65255N3F7)</CodesignKey>
-    <CodesignProvision>Hacked_MacStore_Distribution_2023</CodesignProvision>
+    <CodesignProvision>MauiDemo</CodesignProvision>
     <CodesignEntitlements>Platforms\MacCatalyst\Entitlements.plist</CodesignEntitlements>
-    <ApplicationId>com.lancelotsoftware.HackedApp</ApplicationId>
+    <ApplicationId>MauiDemo</ApplicationId>
   </PropertyGroup>
 
-  <!-- ******** Windows release build will use these properties ******** -->
+  <!-- Windows -->
 
   <PropertyGroup Condition="$(TargetFramework.Contains('-windows10.0.19041.0')) and '$(Configuration)' == 'Release'">
     <AppxPackageSigningEnabled>true</AppxPackageSigningEnabled>
