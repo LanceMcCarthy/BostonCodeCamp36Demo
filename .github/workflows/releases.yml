@@ -3,10 +3,8 @@ on:
   # Allow a manual trigger, just in case.
   workflow_dispatch:
   push:
-    # Using a wildcard allows you to trigger the build on any release brach (e.g., releases/v1.0, releases/v2.0, etc.).
     branches:
       - 'releases'
-    # Only trigger this workflow when source code changes are detected.
     paths:
       - 'src/MauiDemo/**/*'
       - '.github/workflows/releases.yml'
