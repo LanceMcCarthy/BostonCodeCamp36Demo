@@ -12,7 +12,7 @@
     <ApplicationTitle>HackedApp</ApplicationTitle>
 
     <!-- App Identifier -->
-    <ApplicationId>com.LancelotSoftware.HackedApp</ApplicationId>
+    <ApplicationId>com.lancelotsoftware.HackedApp</ApplicationId>
     <ApplicationIdGuid>C3D88449-48E7-45F6-9026-0766A05CC4DD</ApplicationIdGuid>
 
     <!-- Versions -->
@@ -69,7 +69,7 @@
     <RuntimeIdentifier>ios-arm64</RuntimeIdentifier>
     <CodesignKey>Apple Distribution: Lancelot Software, LLC (L65255N3F7)</CodesignKey>
     <CodesignProvision>Hacked_AppStore_Distribution_2023</CodesignProvision>
-    <ApplicationId>L65255N3F7.com.lancelotsoftware.HackedApp</ApplicationId>
+    <ApplicationId>com.lancelotsoftware.HackedApp</ApplicationId>
   </PropertyGroup>
 
 
@@ -83,7 +83,7 @@
     <CodesignKey>Apple Distribution: Lancelot Software, LLC (L65255N3F7)</CodesignKey>
     <CodesignProvision>Hacked_MacStore_Distribution_2023</CodesignProvision>
     <CodesignEntitlements>Platforms\MacCatalyst\Entitlements.plist</CodesignEntitlements>
-    <ApplicationId>L65255N3F7.com.lancelotsoftware.HackedApp</ApplicationId>
+    <ApplicationId>com.lancelotsoftware.HackedApp</ApplicationId>
   </PropertyGroup>
 
   <!-- ******** Windows release build will use these properties ******** -->
