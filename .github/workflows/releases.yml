@@ -127,6 +127,8 @@ jobs:
 
   ios-release:
     runs-on: macos-14
+    # disabling because demo is not a real app with a real Apple provisioning profile
+    if: false 
     env:
       TFM: net8.0-ios
     steps:
@@ -189,6 +191,8 @@ jobs:
 
   maccatalyst-release:
     runs-on: macos-14
+    # disabling because demo is not a real app with a real Apple provisioning profile
+    if: false 
     env:
       TFM: net8.0-maccatalyst
     steps:
