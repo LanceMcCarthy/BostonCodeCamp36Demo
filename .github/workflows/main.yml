@@ -76,10 +76,6 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    # Only needed for WinUI builds due to MSIX capabilities.
-    - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.3.2
-
     - name: Install MAUI workloads
       shell: pwsh
       run: dotnet workload install maui --source https://api.nuget.org/v3/index.json
@@ -93,7 +89,7 @@ jobs:
 # >>>>>>> iOS Build <<<<<<< #
 # ************************* #
   maui-ios:
-    runs-on: macos-12
+    runs-on: macos-14
     env:
       TFM: net8.0-ios
     steps:
@@ -120,7 +116,7 @@ jobs:
 # >>>>>>> MacCatalyst Build <<<<<<< #
 # ********************************* #
   maui-macos:
-    runs-on: macos-12
+    runs-on: macos-14
     env:
       TFM: net8.0-maccatalyst
     steps:
