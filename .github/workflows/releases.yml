@@ -51,6 +51,8 @@ jobs:
     - name: Build MAUI Android project
       run: dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:AndroidKeyStore=true -p:AndroidSigningKeyStore="${{github.workspace}}/${{secrets.ANDROID_SIGNING_KEYSTORE_FILENAME}}" -p:AndroidSigningStorePass="${{secrets.ANDROID_SIGNING_STORE_PASS}}" -p:AndroidSigningKeyAlias="${{secrets.ANDROID_SIGNING_KEY_ALIAS}}" -p:AndroidSigningKeyPass="${{secrets.ANDROID_SIGNING_KEY_PASS}}"
 
+    # Upload the artifact the Action's result
+    # To publish to the store, see https://github.com/marketplace/actions/upload-android-release-to-play-store
     - name: Upload Android artifacts (APKs & AABs)
       uses: actions/upload-artifact@v4
       with:
@@ -109,6 +111,7 @@ jobs:
         # -p:PackageCertificateKeyFile="${{steps.write_file.outputs.filePath}}" -p:PackageCertificatePassword="${{secrets.CODESIGN_CERTIFICATE_PASSWORD}}"
 
     # Upload the artifact the Action's result
+    # To publish to the stopre, see https://github.com/marketplace/actions/microsoft-store-publish
     - name: Upload WinUI artifacts
       uses: actions/upload-artifact@v4
       with:     
@@ -156,19 +159,10 @@ jobs:
         api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
         api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
 
-    # - name: Save provisioning profile
-    #   run: |
-    #     set -euo pipefail
-    #     mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-    #     echo "${{secrets.HACKED_APPSTORE_DISTRIBUTION_BASE64}}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/Hacked_AppStore_Distribution_2023.mobileprovision
-
     # Docs https://learn.microsoft.com/en-us/dotnet/maui/ios/deployment/publish-cli?view=net-maui-8.0
     - name: Build MAUI iOS project
       run: |
-        dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:PublishTrimmed=true -p:MtouchLink=SdkOnly -p:ApplicationId=MauiDemo -p:CodesignProvision=MauiDemo
-
-        # These are defined dynamically in the csproj, but you can also add them in the command.
-        # -p:CodesignProvision=xxx -p:ApplicationId=xxx CodesignKey=xxx -p:RuntimeIdentifier=ios-arm64 ArchiveOnBuild=true
+        dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:RuntimeIdentifier=ios-arm64 -p:PublishTrimmed=true -p:MtouchLink=SdkOnly -p:ApplicationId=MauiDemo -p:CodesignProvision=MauiDemo -p:CodesignKey="Apple Distribution: Lancelot Software, LLC (L65255N3F7)"
 
     # # Docs https://github.com/Apple-Actions/upload-testflight-build
     # - name: 'Upload app to TestFlight'
@@ -222,25 +216,26 @@ jobs:
     - uses: Apple-Actions/download-provisioning-profiles@v2
       with:
         profile-type: "MAC_APP_STORE"
-        bundle-id: "MauiDemo"
+        bundle-id: "com.lancelotsoftware.MauiDemo"
         issuer-id: "${{secrets.APPSTORE_API_ISSUER_ID}}"
         api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
         api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
 
-    # - name: Save provisioning profile
-    #   run: |
-    #     set -euo pipefail
-    #     mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-    #     echo "${{secrets.HACKED_MACSTORE_DISTRIBUTION_BASE64}}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/Hacked_MacStore_Distribution_2023.provisionprofile
-
     # Docs https://learn.microsoft.com/en-us/dotnet/maui/mac-catalyst/deployment/publish-app-store?view=net-maui-8.0 (carefully follow the intructions about entitlements.plist and info.plist)
     - name: Build MAUI MacCatalyst project
       run: |
-        dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:PublishTrimmed=true -p:MtouchLink=SdkOnly -p:CodesignProvision=MauiDemo
-        
-        # These are defined dynamically in the csproj, but you can also add them in the command.
-        # -p:CodesignEntitlements=Platforms\MacCatalyst\Entitlements.plist -p:RuntimeIdentifier=maccatalyst-x64 -p:CreatePackage=true -p:EnableCodeSigning=true -p:EnablePackageSigning=true -p:CodesignProvision=xxx -p:CodesignKey=xxx -p:ApplicationId=xxxx
+        dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:RuntimeIdentifier=maccatalyst-x64 -p:EnableCodeSigning=true -p:EnablePackageSigning=true -p:PublishTrimmed=true -p:MtouchLink=SdkOnly -p:ApplicationId=com.lancelotsoftware.MauiDemo -p:CodesignProvision=MauiDemo -p:CodesignKey="Apple Distribution: Lancelot Software, LLC (L65255N3F7)" -p:CodesignEntitlements='Platforms\MacCatalyst\Entitlements.plist'
 
+    # # Docs https://github.com/Apple-Actions/upload-testflight-build
+    # - name: 'Upload app to TestFlight'
+    #   uses: apple-actions/upload-testflight-build@v1
+    #   with: 
+    #     app-path: "${{github.workspace}}/**/*.pkg" 
+    #     issuer-id: ${{secrets.APPSTORE_API_ISSUER_ID}}
+    #     api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
+    #     api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
+
+    # Upload the artifact the Action's result
     - name: Upload maccatalyst artifacts
       uses: actions/upload-artifact@v4
       with:
