@@ -41,16 +41,13 @@ jobs:
         distribution: 'microsoft'
         java-version: '11'
     
+    - name: Install MAUI workloads
+      run: dotnet workload install maui --source "https://api.nuget.org/v3/index.json"
+    
     - name: Decode the Keystore into File
       run: |
         $file_bytes = [System.Convert]::FromBase64String("${{secrets.ANDROID_SIGNING_KEYSTORE_BASE64}}")
         [IO.File]::WriteAllBytes("${{github.workspace}}/${{secrets.ANDROID_SIGNING_KEYSTORE_FILENAME}}", $file_bytes)
-    
-    - name: Install MAUI workloads
-      run: dotnet workload install maui --source "https://api.nuget.org/v3/index.json"
-
-    - name: Restore NuGet packages
-      run: dotnet restore ${{env.PROJECT_PATH}}
 
     # Docs https://learn.microsoft.com/en-us/dotnet/maui/android/deployment/publish-cli?view=net-maui-8.0
     - name: Build MAUI Android project
@@ -84,9 +81,6 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    # - name: Add msbuild to PATH
-    #   uses: microsoft/setup-msbuild@v1.3.2
-
     - name: Base64 To PFX file
       id: write_file
       uses: timheuer/base64-to-file@v1.2
@@ -114,7 +108,7 @@ jobs:
         # With your own pfx file (or just use azcodesign)
         # -p:PackageCertificateKeyFile="${{steps.write_file.outputs.filePath}}" -p:PackageCertificatePassword="${{secrets.CODESIGN_CERTIFICATE_PASSWORD}}"
 
-    # automatic publishing to the Microsoft Store can be found here
+    # Upload the artifact the Action's result
     - name: Upload WinUI artifacts
       uses: actions/upload-artifact@v4
       with:     
@@ -146,44 +140,44 @@ jobs:
     - name: Install MAUI workloads
       run: dotnet workload install maui --source "https://api.nuget.org/v3/index.json"
 
-    # Let's import the App code signing certificate. Docs https://github.com/Apple-Actions/import-codesign-certs
+    # Docs https://github.com/Apple-Actions/import-codesign-certs
     - name: Import Code-Signing Certificates
       uses: Apple-Actions/import-codesign-certs@v2
       with:
         p12-file-base64: "${{secrets.APPLE_DISTRIBUTION_CERT_BASE64}}"
         p12-password: "${{secrets.APPLE_DISTRIBUTION_CERT_PASSWORD}}"
 
-    # We also need the provisioning profile, we can download that from Apple AppCenter. Docs https://github.com/Apple-Actions/download-provisioning-profiles
-    # - uses: Apple-Actions/download-provisioning-profiles@v2
-    #   with:
-    #     profile-type: "IOS_APP_STORE"
-    #     bundle-id: "com.lancelotsoftware.HackedApp"
-    #     issuer-id: "${{secrets.APPSTORE_API_ISSUER_ID}}"
-    #     api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
-    #     api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
-
-    - name: Save provisioning profile
-      run: |
-        set -euo pipefail
-        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-        echo "${{secrets.HACKED_APPSTORE_DISTRIBUTION_BASE64}}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/Hacked_AppStore_Distribution_2023.mobileprovision
-
-    # Now we can build the iOS project. Docs https://learn.microsoft.com/en-us/dotnet/maui/ios/deployment/publish-cli?view=net-maui-8.0
-    - name: Build MAUI iOS project
-      run: |
-        dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:PublishTrimmed=true -p:MtouchLink=SdkOnly -p:CodesignProvision=Hacked_AppStore_Distribution_2023
-
-        # These are defined dynamically in the csproj, but you can also add them in the command.
-        # -p:CodesignProvision=xxx -p:ApplicationId=xxx CodesignKey=xxx -p:RuntimeIdentifier=ios-arm64 ArchiveOnBuild=true -p:ApplicationId=xxxx
-
-    # You can use Apple's GitHub Actions to upload to TestFlight. Docs https://github.com/Apple-Actions/upload-testflight-build
-    - name: 'Upload app to TestFlight'
-      uses: apple-actions/upload-testflight-build@v1
-      with: 
-        app-path: "${{github.workspace}}/**/*.ipa" 
-        issuer-id: ${{secrets.APPSTORE_API_ISSUER_ID}}
+    # Docs https://github.com/Apple-Actions/download-provisioning-profiles
+    - uses: Apple-Actions/download-provisioning-profiles@v2
+      with:
+        profile-type: "IOS_APP_STORE"
+        bundle-id: "MauiDemo"
+        issuer-id: "${{secrets.APPSTORE_API_ISSUER_ID}}"
         api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
         api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
+
+    # - name: Save provisioning profile
+    #   run: |
+    #     set -euo pipefail
+    #     mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+    #     echo "${{secrets.HACKED_APPSTORE_DISTRIBUTION_BASE64}}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/Hacked_AppStore_Distribution_2023.mobileprovision
+
+    # Docs https://learn.microsoft.com/en-us/dotnet/maui/ios/deployment/publish-cli?view=net-maui-8.0
+    - name: Build MAUI iOS project
+      run: |
+        dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:PublishTrimmed=true -p:MtouchLink=SdkOnly -p:ApplicationId=MauiDemo -p:CodesignProvision=MauiDemo
+
+        # These are defined dynamically in the csproj, but you can also add them in the command.
+        # -p:CodesignProvision=xxx -p:ApplicationId=xxx CodesignKey=xxx -p:RuntimeIdentifier=ios-arm64 ArchiveOnBuild=true
+
+    # # Docs https://github.com/Apple-Actions/upload-testflight-build
+    # - name: 'Upload app to TestFlight'
+    #   uses: apple-actions/upload-testflight-build@v1
+    #   with: 
+    #     app-path: "${{github.workspace}}/**/*.ipa" 
+    #     issuer-id: ${{secrets.APPSTORE_API_ISSUER_ID}}
+    #     api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
+    #     api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
 
     # Upload the artifact the Action's result
     - name: Upload iOS artifacts
@@ -217,32 +211,32 @@ jobs:
     - name: Install MAUI workloads
       run: dotnet workload install maui --source "https://api.nuget.org/v3/index.json"
 
-    # PREPARE Let's import the App code signing certificate. this action form Apple also supports using base64, which is a nice convenience. Docs https://github.com/Apple-Actions/import-codesign-certs
+    # Docs https://github.com/Apple-Actions/import-codesign-certs
     - name: Import Code-Signing Certificates
       uses: Apple-Actions/import-codesign-certs@v2
       with:
         p12-file-base64: "${{secrets.APPLE_DISTRIBUTION_CERT_BASE64}}"
         p12-password: "${{secrets.APPLE_DISTRIBUTION_CERT_PASSWORD}}"
 
-    # # PREPARE We also need the provisioning profile, we can download that from Apple AppCenter. Docs https://github.com/Apple-Actions/download-provisioning-profiles
-    # - uses: Apple-Actions/download-provisioning-profiles@v2
-    #   with:
-    #     profile-type: "MAC_APP_STORE"
-    #     bundle-id: "com.lancelotsoftware.HackedApp"
-    #     issuer-id: "${{secrets.APPSTORE_API_ISSUER_ID}}"
-    #     api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
-    #     api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
+    # Docs https://github.com/Apple-Actions/download-provisioning-profiles
+    - uses: Apple-Actions/download-provisioning-profiles@v2
+      with:
+        profile-type: "MAC_APP_STORE"
+        bundle-id: "MauiDemo"
+        issuer-id: "${{secrets.APPSTORE_API_ISSUER_ID}}"
+        api-key-id: "${{secrets.APPSTORE_API_KEY_ID}}"
+        api-private-key: "${{secrets.APPSTORE_API_PRIVATE_KEY}}"
 
-    - name: Save provisioning profile
-      run: |
-        set -euo pipefail
-        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-        echo "${{secrets.HACKED_MACSTORE_DISTRIBUTION_BASE64}}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/Hacked_MacStore_Distribution_2023.provisionprofile
+    # - name: Save provisioning profile
+    #   run: |
+    #     set -euo pipefail
+    #     mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+    #     echo "${{secrets.HACKED_MACSTORE_DISTRIBUTION_BASE64}}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/Hacked_MacStore_Distribution_2023.provisionprofile
 
     # Docs https://learn.microsoft.com/en-us/dotnet/maui/mac-catalyst/deployment/publish-app-store?view=net-maui-8.0 (carefully follow the intructions about entitlements.plist and info.plist)
     - name: Build MAUI MacCatalyst project
       run: |
-        dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:PublishTrimmed=true -p:MtouchLink=SdkOnly -p:CodesignProvision=Hacked_MacStore_Distribution_2023
+        dotnet publish ${{env.PROJECT_PATH}} -c ${{env.BUILD_CONFIGURATION}} -f ${{env.TFM}} -p:PublishTrimmed=true -p:MtouchLink=SdkOnly -p:CodesignProvision=MauiDemo
         
         # These are defined dynamically in the csproj, but you can also add them in the command.
         # -p:CodesignEntitlements=Platforms\MacCatalyst\Entitlements.plist -p:RuntimeIdentifier=maccatalyst-x64 -p:CreatePackage=true -p:EnableCodeSigning=true -p:EnablePackageSigning=true -p:CodesignProvision=xxx -p:CodesignKey=xxx -p:ApplicationId=xxxx
