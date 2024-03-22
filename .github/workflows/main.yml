@@ -1,4 +1,4 @@
-name: Build All - Debug
+name: Main Builds
 
 on:
   # Allows us to manually trigger the worflow from the GitHub UI.
@@ -53,13 +53,9 @@ jobs:
       shell: pwsh
       run: dotnet workload install maui --source https://api.nuget.org/v3/index.json
 
-    - name: Restore NuGet packages
-      shell: pwsh
-      run: dotnet restore ${{ env.PROJECT_PATH }}
-
     - name: Build Maui Android project
       shell: pwsh
-      run: dotnet build ${{ env.PROJECT_PATH }} -c ${{ env.BUILD_CONFIGURATION }} -f ${{ env.TFM }} --no-restore -p:PublishTrimmed=False
+      run: dotnet build ${{ env.PROJECT_PATH }} -c ${{ env.BUILD_CONFIGURATION }} -f ${{ env.TFM }} -p:PublishTrimmed=False
 
 
 # ***************************** #
@@ -88,10 +84,6 @@ jobs:
       shell: pwsh
       run: dotnet workload install maui --source https://api.nuget.org/v3/index.json
 
-    - name: Restore NuGet packages
-      shell: pwsh
-      run: dotnet restore ${{ env.PROJECT_PATH }}
-
     - name: Build Maui WinUI project
       shell: pwsh
       run: dotnet build ${{ env.PROJECT_PATH }} -c ${{ env.BUILD_CONFIGURATION }} -f ${{ env.TFM }} -p:PublishTrimmed=False
@@ -110,11 +102,6 @@ jobs:
       with:
         fetch-depth: 0
 
-    # If you have a problem with xcode not being available on the runner, here is a trick
-    #- uses: maxim-lobanov/setup-xcode@v1
-    #  with:
-    #    xcode-version: latest
-
     - name: Setup .NET Core SDK
       uses: actions/setup-dotnet@v4
       with:
@@ -124,13 +111,9 @@ jobs:
       shell: pwsh
       run: dotnet workload install maui --source https://api.nuget.org/v3/index.json
 
-    - name: Restore NuGet packages
-      shell: bash
-      run: dotnet restore ${{ env.PROJECT_PATH }}
-
     - name: Build MAUI iOS project
       shell: bash
-      run: dotnet build ${{ env.PROJECT_PATH }} -c ${{ env.BUILD_CONFIGURATION }} -f ${{ env.TFM }} --no-restore -p:PublishTrimmed=True -p:MtouchLink=SdkOnly
+      run: dotnet build ${{ env.PROJECT_PATH }} -c ${{ env.BUILD_CONFIGURATION }} -f ${{ env.TFM }} -p:PublishTrimmed=True -p:MtouchLink=SdkOnly
 
 
 # ********************************* #
@@ -155,10 +138,6 @@ jobs:
       shell: pwsh
       run: dotnet workload install maui --source https://api.nuget.org/v3/index.json
 
-    - name: Restore NuGet packages
-      shell: bash
-      run: dotnet restore ${{ env.PROJECT_PATH }}
-    
     - name: Build MAUI MacCatalyst project
       shell: bash
-      run: dotnet build ${{ env.PROJECT_PATH }} -c ${{ env.BUILD_CONFIGURATION }} -f ${{ env.TFM }} --no-restore -p:PublishTrimmed=True -p:MtouchLink=SdkOnly
+      run: dotnet build ${{ env.PROJECT_PATH }} -c ${{ env.BUILD_CONFIGURATION }} -f ${{ env.TFM }} -p:PublishTrimmed=True -p:MtouchLink=SdkOnly
