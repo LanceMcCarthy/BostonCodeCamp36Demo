@@ -12,7 +12,8 @@ The key takeaway in this demonstration is that are there are two approaches usua
 1. What do we do for normal builds? I just want to verify the code builds after day-to-day work.
 2. What do we do for release builds? I want to build in release mode and package the app
 
-My Boston Code Camp presentation, and this demo, will show you both approaches.
+> [!TIP]
+> See the PowerPoint presentation in `Boston Code Camp 2024.pptx` file above. I take you through every step of both workflows in detail.
 
 ## Workflows
 
